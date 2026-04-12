@@ -12,15 +12,28 @@ export default function Register() {
     gstNumber: ""
   });
 
+  const [loading, setLoading] = useState(false);
+
   const router = useRouter();
+  const API = process.env.NEXT_PUBLIC_API_URL;
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleRegister = async () => {
+    // ✅ Validation
+    if (!form.email || !form.password) {
+      alert("Email and password are required");
+      return;
+    }
+
+    if (loading) return;
+    setLoading(true);
+
     try {
-      const res = await fetch("process.env.NEXT_PUBLIC_API_URL/api/auth/register", {
+      // ✅ REGISTER
+      const res = await fetch(`${API}/api/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -33,8 +46,8 @@ export default function Register() {
       if (res.ok) {
         alert("Registered successfully");
 
-        // Auto login after register
-        const loginRes = await fetch("process.env.NEXT_PUBLIC_API_URL/api/auth/login", {
+        // ✅ AUTO LOGIN
+        const loginRes = await fetch(`${API}/api/auth/login`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
@@ -47,23 +60,31 @@ export default function Register() {
 
         const loginData = await loginRes.json();
 
-        localStorage.setItem("token", loginData.token);
+        if (loginRes.ok) {
+          // ✅ STORE TOKEN IN COOKIE (same as login page)
+          document.cookie = `token=${loginData.token}; path=/; max-age=86400; samesite=strict`;
 
-        // Redirect based on role
-        if (loginData.user.role === "ADMIN") {
-          router.push("/admin");
-        } else if (loginData.user.role === "VENDOR") {
-          router.push("/vendor");
+          // ✅ ROLE BASED REDIRECT
+          if (loginData.user.role === "ADMIN") {
+            router.push("/admin");
+          } else if (loginData.user.role === "VENDOR") {
+            router.push("/vendor");
+          } else {
+            router.push("/");
+          }
         } else {
-          router.push("/");
+          alert("Login failed after registration");
         }
 
       } else {
-        alert(data.message);
+        alert(data.message || "Registration failed");
       }
 
     } catch (error) {
       console.error(error);
+      alert("Server error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -79,22 +100,25 @@ export default function Register() {
         <input
           name="email"
           placeholder="Email"
-          className="w-full mb-3 p-2 rounded bg-gray-700"
+          value={form.email}
           onChange={handleChange}
+          className="w-full mb-3 p-2 rounded bg-gray-700"
         />
 
         <input
           name="password"
           type="password"
           placeholder="Password"
-          className="w-full mb-3 p-2 rounded bg-gray-700"
+          value={form.password}
           onChange={handleChange}
+          className="w-full mb-3 p-2 rounded bg-gray-700"
         />
 
         <select
           name="role"
-          className="w-full mb-3 p-2 rounded bg-gray-700"
+          value={form.role}
           onChange={handleChange}
+          className="w-full mb-3 p-2 rounded bg-gray-700"
         >
           <option value="CLIENT">Client</option>
           <option value="VENDOR">Vendor</option>
@@ -104,22 +128,25 @@ export default function Register() {
         <input
           name="companyName"
           placeholder="Company Name"
-          className="w-full mb-3 p-2 rounded bg-gray-700"
+          value={form.companyName}
           onChange={handleChange}
+          className="w-full mb-3 p-2 rounded bg-gray-700"
         />
 
         <input
           name="gstNumber"
           placeholder="GST Number"
-          className="w-full mb-6 p-2 rounded bg-gray-700"
+          value={form.gstNumber}
           onChange={handleChange}
+          className="w-full mb-6 p-2 rounded bg-gray-700"
         />
 
         <button
           onClick={handleRegister}
+          disabled={loading}
           className="w-full bg-orange-600 hover:bg-orange-700 p-2 rounded"
         >
-          Register
+          {loading ? "Registering..." : "Register"}
         </button>
 
       </div>

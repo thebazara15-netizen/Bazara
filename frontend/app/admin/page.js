@@ -7,7 +7,7 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState([]);
   const [orders, setOrders] = useState([]);
 
-  const API = process.env.NEXT_PUBLIC_API_URL;
+  const API = `${process.env.NEXT_PUBLIC_API_URL}/api/...`;
 
   const token =
     typeof document !== "undefined"

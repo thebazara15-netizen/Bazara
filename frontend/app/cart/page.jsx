@@ -5,56 +5,67 @@ import { useEffect, useState } from "react";
 export default function CartPage() {
   const [cart, setCart] = useState([]);
 
-  const token = typeof document !== "undefined"
-    ? document.cookie
-        .split("; ")
-        .find(row => row.startsWith("token="))
-        ?.split("=")[1]
-    : null;
+  const API = process.env.NEXT_PUBLIC_API_URL;
+
+  const token =
+    typeof document !== "undefined"
+      ? document.cookie
+          .split("; ")
+          .find(row => row.startsWith("token="))
+          ?.split("=")[1]
+      : null;
 
   useEffect(() => {
     fetchCart();
   }, []);
 
+  // ✅ FETCH CART
   const fetchCart = async () => {
-    const res = await fetch("process.env.NEXT_PUBLIC_API_URL/api/cart", {
+    try {
+      const res = await fetch(`${API}/api/cart`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      const data = await res.json();
+      setCart(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  // ✅ UPDATE QUANTITY
+  const updateQuantity = async (cartId, quantity) => {
+    if (quantity <= 0) return;
+
+    await fetch(`${API}/api/cart/${cartId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ quantity })
+    });
+
+    fetchCart();
+  };
+
+  // ✅ REMOVE ITEM
+  const removeItem = async (cartId) => {
+    await fetch(`${API}/api/cart/${cartId}`, {
+      method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`
       }
     });
 
-    const updateQuantity = async (cartId, quantity) => {
-    if (quantity <= 0) return;
-
-    await fetch(`process.env.NEXT_PUBLIC_API_URL/api/cart/${cartId}`, {
-        method: "PUT",
-        headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ quantity })
-    });
-
     fetchCart();
-    };
-
-    const removeItem = async (cartId) => {
-    await fetch(`process.env.NEXT_PUBLIC_API_URL/api/cart/${cartId}`, {
-        method: "DELETE",
-        headers: {
-        Authorization: `Bearer ${token}`
-        }
-    });
-
-    fetchCart();
-    };
-
-    const data = await res.json();
-    setCart(data);
   };
 
+  // ✅ PLACE ORDER
   const placeOrder = async () => {
-    const res = await fetch("process.env.NEXT_PUBLIC_API_URL/api/orders", {
+    const res = await fetch(`${API}/api/orders`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`
@@ -80,59 +91,59 @@ export default function CartPage() {
       <h1 className="text-3xl font-bold mb-6">Your Cart</h1>
 
       {/* Cart Items */}
-        {cart.map(item => (
+      {cart.map(item => (
         <div
-            key={item.id}
-            className="flex items-center bg-gray-800 p-4 rounded-lg"
+          key={item.id}
+          className="flex items-center bg-gray-800 p-4 rounded-lg mb-4"
         >
 
-            {/* Image */}
-            <img
+          {/* Image */}
+          <img
             src={item.product.image}
             alt={item.product.name}
             className="w-24 h-24 object-cover rounded mr-4"
-            />
+          />
 
-            {/* Info */}
-            <div className="flex-1">
+          {/* Info */}
+          <div className="flex-1">
             <h2 className="text-lg font-semibold">
-                {item.product.name}
+              {item.product.name}
             </h2>
 
             <p className="text-gray-400">
-                ₹{item.product.finalPrice}
+              ₹{item.product.finalPrice}
             </p>
 
-            {/* 🔥 QUANTITY CONTROLS */}
+            {/* Quantity */}
             <div className="flex items-center gap-3 mt-2">
-                <button
+              <button
                 onClick={() => updateQuantity(item.id, item.quantity - 10)}
                 className="bg-gray-600 px-3 py-1 rounded"
-                >
+              >
                 -
-                </button>
+              </button>
 
-                <span>{item.quantity}</span>
+              <span>{item.quantity}</span>
 
-                <button
+              <button
                 onClick={() => updateQuantity(item.id, item.quantity + 10)}
                 className="bg-gray-600 px-3 py-1 rounded"
-                >
+              >
                 +
-                </button>
+              </button>
             </div>
-            </div>
+          </div>
 
-            {/* 🔥 REMOVE BUTTON */}
-            <button
+          {/* Remove */}
+          <button
             onClick={() => removeItem(item.id)}
             className="bg-red-600 px-4 py-2 rounded ml-4"
-            >
+          >
             Remove
-            </button>
+          </button>
 
         </div>
-        ))}
+      ))}
 
       {/* Total */}
       <div className="mt-10 bg-gray-800 p-6 rounded-lg">

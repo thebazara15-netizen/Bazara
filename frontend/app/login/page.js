@@ -6,11 +6,24 @@ import { useRouter } from "next/navigation";
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const router = useRouter();
+  const API = process.env.NEXT_PUBLIC_API_URL;
 
   const handleLogin = async () => {
+    // ✅ Validation
+    if (!email || !password) {
+      alert("Please enter email and password");
+      return;
+    }
+
+    if (loading) return;
+
+    setLoading(true);
+
     try {
-      const res = await fetch("process.env.NEXT_PUBLIC_API_URL/api/auth/login", {
+      const res = await fetch(`${API}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -20,28 +33,30 @@ export default function Login() {
 
       const data = await res.json();
 
-        if (res.ok) {
-
-        // Store token (use cookie now)
-        document.cookie = `token=${data.token}; path=/`;
+      if (res.ok) {
+        // ✅ Secure cookie (1 day)
+        document.cookie = `token=${data.token}; path=/; max-age=86400; samesite=strict`;
 
         alert("Login successful");
 
-        // 🔥 ROLE-BASED REDIRECT
+        // ✅ Role-based redirect
         if (data.user.role === "ADMIN") {
-            router.push("/admin");
+          router.push("/admin");
         } else if (data.user.role === "VENDOR") {
-            router.push("/vendor");
+          router.push("/vendor");
         } else {
-            router.push("/");
+          router.push("/");
         }
-        }
-       else {
-        alert(data.message);
+
+      } else {
+        alert(data.message || "Invalid credentials");
       }
 
     } catch (error) {
-      console.error(error);
+      console.error("Login error:", error);
+      alert("Server error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -54,28 +69,32 @@ export default function Login() {
           Login
         </h2>
 
+        {/* Email */}
         <input
           type="email"
           placeholder="Email"
           className="w-full mb-4 p-2 rounded bg-gray-700"
+          value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
 
+        {/* Password */}
         <input
           type="password"
           placeholder="Password"
           className="w-full mb-6 p-2 rounded bg-gray-700"
+          value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
 
+        {/* Button */}
         <button
           onClick={handleLogin}
+          disabled={loading}
           className="w-full bg-orange-600 hover:bg-orange-700 p-2 rounded"
         >
-          Login
+          {loading ? "Logging in..." : "Login"}
         </button>
-
-
 
       </div>
     </div>
