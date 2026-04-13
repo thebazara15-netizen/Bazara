@@ -6,7 +6,24 @@ const jwt = require('jsonwebtoken');
 
 // Register User
 exports.registerUser = async (data) => {
-  const { email, password, role, companyName, gstNumber } = data;
+  const {
+    email,
+    password,
+    role = 'CLIENT',
+    firstName,
+    lastName,
+    companyName,
+    gstNumber,
+    phone
+  } = data;
+
+  if (!email || !password) {
+    throw new Error('Email and password are required');
+  }
+
+  if (role === 'ADMIN') {
+    throw new Error('Admin cannot be created');
+  }
 
   const existingUser = await User.findOne({ where: { email } });
   if (existingUser) {
@@ -19,8 +36,11 @@ exports.registerUser = async (data) => {
     email,
     password: hashedPassword,
     role,
+    firstName,
+    lastName,
     companyName,
-    gstNumber
+    gstNumber,
+    phone
   });
 
   return user;
