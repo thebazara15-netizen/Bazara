@@ -42,7 +42,6 @@ export default function LoginPage() {
         } else {
           router.push("/");
         }
-
       } else {
         alert(data.message || "Invalid credentials");
       }
