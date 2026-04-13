@@ -32,19 +32,30 @@ export default function LoginPage() {
 
       const data = await res.json();
 
-      if (res.ok) {
-        document.cookie = `token=${data.token}; path=/; max-age=86400; samesite=None; secure`;
+    if (res.ok) {
+      document.cookie = `token=${data.token}; path=/; max-age=86400; samesite=None; secure`;
 
-        if (data.user.role === "ADMIN") {
-          router.push("/admin");
-        } else if (data.user.role === "VENDOR") {
-          router.push("/vendor");
-        } else {
-          router.push("/");
-        }
-      } else {
-        alert(data.message || "Invalid credentials");
+      // ✅ CHECK IF USER WAS REDIRECTED FROM SOME PAGE
+      const redirect = localStorage.getItem("redirect");
+
+      if (redirect) {
+        router.push(redirect);
+        localStorage.removeItem("redirect");
+        return;
       }
+
+      // ✅ YOUR EXISTING ROLE LOGIC (UNCHANGED)
+      if (data.user.role === "ADMIN") {
+        router.push("/admin");
+      } else if (data.user.role === "VENDOR") {
+        router.push("/vendor");
+      } else {
+        router.push("/");
+      }
+
+    } else {
+      alert(data.message || "Invalid credentials");
+    }
 
     } catch (error) {
       console.error("Login error:", error);

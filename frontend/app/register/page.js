@@ -4,17 +4,19 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function Register() {
+  const router = useRouter();
+
   const [form, setForm] = useState({
     email: "",
     password: "",
     role: "CLIENT",
+    firstName: "",
+    lastName: "",
     companyName: "",
-    gstNumber: ""
+    gstNumber: "",
+    phone: ""
   });
 
-  const [loading, setLoading] = useState(false);
-
-  const router = useRouter();
   const API = process.env.NEXT_PUBLIC_API_URL;
 
   const handleChange = (e) => {
@@ -22,17 +24,7 @@ export default function Register() {
   };
 
   const handleRegister = async () => {
-    // ✅ Validation
-    if (!form.email || !form.password) {
-      alert("Email and password are required");
-      return;
-    }
-
-    if (loading) return;
-    setLoading(true);
-
     try {
-      // ✅ REGISTER
       const res = await fetch(`${API}/api/auth/register`, {
         method: "POST",
         headers: {
@@ -44,9 +36,9 @@ export default function Register() {
       const data = await res.json();
 
       if (res.ok) {
-        alert("Registered successfully");
+        alert("Signup successful");
 
-        // ✅ AUTO LOGIN
+        // Auto login
         const loginRes = await fetch(`${API}/api/auth/login`, {
           method: "POST",
           headers: {
@@ -60,94 +52,123 @@ export default function Register() {
 
         const loginData = await loginRes.json();
 
-        if (loginRes.ok) {
-          // ✅ STORE TOKEN IN COOKIE (same as login page)
-          document.cookie = `token=${loginData.token}; path=/; max-age=86400; samesite=strict`;
+        document.cookie = `token=${loginData.token}; path=/; max-age=86400`;
 
-          // ✅ ROLE BASED REDIRECT
-          if (loginData.user.role === "ADMIN") {
-            router.push("/admin");
-          } else if (loginData.user.role === "VENDOR") {
-            router.push("/vendor");
-          } else {
-            router.push("/");
-          }
-        } else {
-          alert("Login failed after registration");
-        }
-
+        router.push("/");
       } else {
-        alert(data.message || "Registration failed");
+        alert(data.message);
       }
 
     } catch (error) {
       console.error(error);
       alert("Server error");
-    } finally {
-      setLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
 
-      <div className="bg-gray-800 p-8 rounded-lg w-96 shadow-lg">
+      <div className="bg-gray-800 p-8 rounded-lg w-[420px] shadow-lg">
 
         <h2 className="text-2xl font-bold mb-6 text-center">
-          Register
+          Create Account
         </h2>
 
+        {/* Email */}
         <input
           name="email"
           placeholder="Email"
-          value={form.email}
-          onChange={handleChange}
           className="w-full mb-3 p-2 rounded bg-gray-700"
+          onChange={handleChange}
         />
 
+        {/* Password */}
         <input
           name="password"
           type="password"
           placeholder="Password"
-          value={form.password}
-          onChange={handleChange}
           className="w-full mb-3 p-2 rounded bg-gray-700"
+          onChange={handleChange}
         />
 
+        {/* First + Last Name */}
+        <div className="flex gap-3">
+          <input
+            name="firstName"
+            placeholder="First name"
+            className="w-1/2 mb-3 p-2 rounded bg-gray-700"
+            onChange={handleChange}
+          />
+
+          <input
+            name="lastName"
+            placeholder="Last name"
+            className="w-1/2 mb-3 p-2 rounded bg-gray-700"
+            onChange={handleChange}
+          />
+        </div>
+
+        {/* Phone */}
+        <input
+          name="phone"
+          placeholder="Phone Number"
+          className="w-full mb-3 p-2 rounded bg-gray-700"
+          onChange={handleChange}
+        />
+
+        {/* ROLE */}
         <select
           name="role"
-          value={form.role}
+          className="w-full mb-4 p-2 rounded bg-gray-700"
           onChange={handleChange}
-          className="w-full mb-3 p-2 rounded bg-gray-700"
         >
           <option value="CLIENT">Client</option>
           <option value="VENDOR">Vendor</option>
-          <option value="ADMIN">Admin</option>
         </select>
 
-        <input
-          name="companyName"
-          placeholder="Company Name"
-          value={form.companyName}
-          onChange={handleChange}
-          className="w-full mb-3 p-2 rounded bg-gray-700"
-        />
+        {/* ✅ SHOW ONLY IF VENDOR */}
+        {form.role === "VENDOR" && (
+          <>
+            <input
+              name="companyName"
+              placeholder="Company Name"
+              className="w-full mb-3 p-2 rounded bg-gray-700"
+              onChange={handleChange}
+            />
 
-        <input
-          name="gstNumber"
-          placeholder="GST Number"
-          value={form.gstNumber}
-          onChange={handleChange}
-          className="w-full mb-6 p-2 rounded bg-gray-700"
-        />
+            <input
+              name="gstNumber"
+              placeholder="GST Number"
+              className="w-full mb-3 p-2 rounded bg-gray-700"
+              onChange={handleChange}
+            />
+          </>
+        )}
 
+        {/* Terms */}
+        <div className="flex items-start gap-2 text-sm text-gray-400 mb-4">
+          <input type="checkbox" />
+          <p>I agree to Terms of Use and Privacy Policy</p>
+        </div>
+
+        {/* Button */}
         <button
           onClick={handleRegister}
-          disabled={loading}
           className="w-full bg-orange-600 hover:bg-orange-700 p-2 rounded"
         >
-          {loading ? "Registering..." : "Register"}
+          Create Account
         </button>
+
+        {/* Login link */}
+        <p className="text-center text-gray-400 mt-4">
+          Already have an account?{" "}
+          <span
+            onClick={() => router.push("/login")}
+            className="text-orange-500 cursor-pointer hover:underline"
+          >
+            Sign in
+          </span>
+        </p>
 
       </div>
     </div>

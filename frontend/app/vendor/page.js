@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function VendorDashboard() {
+  const router = useRouter();
+
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -17,25 +20,47 @@ export default function VendorDashboard() {
 
   const API = process.env.NEXT_PUBLIC_API_URL;
 
-  const token =
-    typeof document !== "undefined"
-      ? document.cookie
-          .split("; ")
-          .find(row => row.startsWith("token="))
-          ?.split("=")[1]
-      : null;
+  // ✅ Get token
+  const getToken = () => {
+    if (typeof document === "undefined") return null;
 
-  // ✅ Protect page
-  useEffect(() => {
-    if (!token) {
-      window.location.href = "/login";
-    } else {
-      fetchProducts();
+    return document.cookie
+      .split("; ")
+      .find(row => row.startsWith("token="))
+      ?.split("=")[1];
+  };
+
+  // ✅ Decode token
+  const decodeToken = (token) => {
+    try {
+      return JSON.parse(atob(token.split(".")[1]));
+    } catch {
+      return null;
     }
+  };
+
+  // ✅ Protect page (VERY IMPORTANT)
+  useEffect(() => {
+    const token = getToken();
+
+    if (!token) {
+      localStorage.setItem("redirect", "/cart");
+      router.push("/login");
+      return;
+    }
+
+    const user = decodeToken(token);
+
+    if (!user || user.role !== "VENDOR") {
+      router.push("/");
+      return;
+    }
+
+    fetchProducts(token);
   }, []);
 
   // ✅ Fetch Products
-  const fetchProducts = async () => {
+  const fetchProducts = async (token) => {
     try {
       const res = await fetch(`${API}/api/products`);
       const data = await res.json();
@@ -52,6 +77,8 @@ export default function VendorDashboard() {
 
   // ✅ Add Product
   const addProduct = async () => {
+    const token = getToken();
+
     if (!form.name || !form.basePrice) {
       alert("Name and price are required");
       return;
@@ -80,7 +107,6 @@ export default function VendorDashboard() {
       if (res.ok) {
         alert("Product added successfully");
 
-        // Reset form
         setForm({
           name: "",
           description: "",
@@ -90,7 +116,7 @@ export default function VendorDashboard() {
           basePrice: ""
         });
 
-        fetchProducts();
+        fetchProducts(token);
       } else {
         const err = await res.json();
         alert(err.message || "Error adding product");

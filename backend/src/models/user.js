@@ -1,5 +1,3 @@
-// src/models/User.js
-
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
@@ -8,6 +6,7 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     unique: true
   },
+
   password: DataTypes.STRING,
 
   role: {
@@ -15,13 +14,30 @@ const User = sequelize.define('User', {
     defaultValue: 'CLIENT'
   },
 
+  // ✅ EXISTING
   companyName: DataTypes.STRING,
   gstNumber: DataTypes.STRING,
 
   isVerified: {
     type: DataTypes.BOOLEAN,
     defaultValue: false
+  },
+
+  // ✅ ADD THESE NEW FIELDS (JUST ADD BELOW)
+  firstName: {
+    type: DataTypes.STRING
+  },
+
+  lastName: {
+    type: DataTypes.STRING
+  },
+
+  phone: {
+    type: DataTypes.STRING
   }
+
+}, {
+  timestamps: true
 });
 
 module.exports = User;

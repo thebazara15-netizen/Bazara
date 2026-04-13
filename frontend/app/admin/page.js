@@ -1,65 +1,112 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Sidebar from "../../components/Sidebar";
 
 export default function AdminDashboard() {
+  const router = useRouter();
+
   const [users, setUsers] = useState([]);
   const [orders, setOrders] = useState([]);
 
-  const API = `${process.env.NEXT_PUBLIC_API_URL}/api/...`;
+  const API = process.env.NEXT_PUBLIC_API_URL;
 
-  const token =
-    typeof document !== "undefined"
-      ? document.cookie
-          .split("; ")
-          .find(row => row.startsWith("token="))
-          ?.split("=")[1]
-      : null;
+  // ✅ Get token
+  const getToken = () => {
+    if (typeof document === "undefined") return null;
 
+    return document.cookie
+      .split("; ")
+      .find(row => row.startsWith("token="))
+      ?.split("=")[1];
+  };
+
+  // ✅ Decode token
+  const decodeToken = (token) => {
+    try {
+      return JSON.parse(atob(token.split(".")[1]));
+    } catch {
+      return null;
+    }
+  };
+
+  // ✅ Protect Admin Page
   useEffect(() => {
-    fetchUsers();
-    fetchOrders();
+    const token = getToken();
+
+    if (!token) {
+      localStorage.setItem("redirect", "/vendor"); // or /admin
+      router.push("/login");
+      return;
+    }
+
+    const user = decodeToken(token);
+
+    if (!user || user.role !== "ADMIN") {
+      router.push("/");
+      return;
+    }
+
+    fetchUsers(token);
+    fetchOrders(token);
   }, []);
 
-  // ✅ FIXED
+  // ✅ Logout
   const logout = () => {
     document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00";
     window.location.href = "/login";
   };
 
-  const fetchUsers = async () => {
-    const res = await fetch(`${API}/api/admin/users`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
+  // ✅ Fetch Users
+  const fetchUsers = async (token) => {
+    try {
+      const res = await fetch(`${API}/api/admin/users`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
 
-    const data = await res.json();
-    setUsers(data);
+      const data = await res.json();
+      setUsers(data);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
-  const fetchOrders = async () => {
-    const res = await fetch(`${API}/api/admin/orders`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
+  // ✅ Fetch Orders
+  const fetchOrders = async (token) => {
+    try {
+      const res = await fetch(`${API}/api/admin/orders`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
 
-    const data = await res.json();
-    setOrders(data);
+      const data = await res.json();
+      setOrders(data);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
+  // ✅ Approve Vendor
   const approveVendor = async (id) => {
-    await fetch(`${API}/api/admin/approve/${id}`, {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
+    const token = getToken();
 
-    alert("Vendor Approved");
-    fetchUsers();
+    try {
+      await fetch(`${API}/api/admin/approve/${id}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      alert("Vendor Approved");
+      fetchUsers(token);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
@@ -91,37 +138,48 @@ export default function AdminDashboard() {
       <div className="bg-gray-800 p-6 rounded mb-10">
         <h2 className="text-xl mb-4">Users</h2>
 
-        {users.map(user => (
-          <div key={user.id} className="flex justify-between border-b py-2">
-            <div>
-              {user.email} ({user.role})
-            </div>
+        {users.length === 0 ? (
+          <p>No users found</p>
+        ) : (
+          users.map(user => (
+            <div key={user.id} className="flex justify-between border-b py-2">
+              <div>
+                {user.email} ({user.role})
+              </div>
 
-            {user.role === "VENDOR" && !user.isVerified && (
-              <button
-                onClick={() => approveVendor(user.id)}
-                className="bg-green-600 px-4 py-1 rounded"
-              >
-                Approve
-              </button>
-            )}
-          </div>
-        ))}
+              {user.role === "VENDOR" && !user.isVerified && (
+                <button
+                  onClick={() => approveVendor(user.id)}
+                  className="bg-green-600 px-4 py-1 rounded"
+                >
+                  Approve
+                </button>
+              )}
+            </div>
+          ))
+        )}
       </div>
 
       {/* Orders */}
       <div className="bg-gray-800 p-6 rounded">
         <h2 className="text-xl mb-4">Orders</h2>
 
-        {orders.map(order => (
-          <div key={order.id} className="border-b py-2">
-            Order #{order.id} — ₹{order.totalAmount} — {order.status}
-          </div>
-        ))}
+        {orders.length === 0 ? (
+          <p>No orders found</p>
+        ) : (
+          orders.map(order => (
+            <div key={order.id} className="border-b py-2">
+              Order #{order.id} — ₹{order.totalAmount} — {order.status}
+            </div>
+          ))
+        )}
       </div>
 
-      {/* ✅ Logout Button */}
-      <button onClick={logout} className="bg-red-600 px-4 py-2 rounded mt-6">
+      {/* Logout */}
+      <button
+        onClick={logout}
+        className="bg-red-600 px-4 py-2 rounded mt-6"
+      >
         Logout
       </button>
 
