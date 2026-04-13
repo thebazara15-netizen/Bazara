@@ -6,7 +6,7 @@ const app = express();
 app.use(cors({
   origin: [
     "http://localhost:3000",
-    "https://bazara-pi.vercel.app/"
+    "https://bazara-pi.vercel.app"
   ],
   credentials: true
 }));
