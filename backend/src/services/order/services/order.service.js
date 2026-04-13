@@ -2,6 +2,8 @@ const Cart = require('../../../models/Cart');
 const CartItem = require('../../../models/CartItem');
 const Order = require('../../../models/Order');
 const OrderItem = require('../../../models/OrderItem');
+const Product = require('../../../models/Product');
+const { calculatePrice } = require('../../../utils/pricingEngine');
 
 exports.placeOrder = async (userId) => {
 
@@ -14,16 +16,24 @@ exports.placeOrder = async (userId) => {
 
   let totalAmount = 0;
 
-  items.forEach(item => {
+  for (const item of items) {
+    const product = await Product.findByPk(item.productId);
+
+    if (!product) {
+      throw new Error('Product not found');
+    }
+
+    item.price = calculatePrice(product, item.quantity);
+    await item.save();
     totalAmount += item.price;
-  });
+  }
 
   const order = await Order.create({
     userId,
     totalAmount
   });
 
-  for (let item of items) {
+  for (const item of items) {
     await OrderItem.create({
       orderId: order.id,
       productId: item.productId,

@@ -1,53 +1,55 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { decodeToken, getToken } from "../utils/auth";
+
+const formatPrice = (value) => `Rs. ${Number(value || 0).toFixed(2)}`;
 
 export default function Home() {
+  const router = useRouter();
 
   const [products, setProducts] = useState([]);
   const API = process.env.NEXT_PUBLIC_API_URL;
+  const viewerRole = decodeToken(getToken())?.role || null;
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  const fetchProducts = async () => {
-    try {
-      const res = await fetch(`${API}/api/products`);
-      const data = await res.json();
-      setProducts(data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const addToCart = async (productId) => {
-    const token = document.cookie
-      .split("; ")
-      .find(row => row.startsWith("token="))
-      ?.split("=")[1];
+  const addToCart = async (product) => {
+    const token = getToken();
+    const user = token ? decodeToken(token) : null;
 
     // ❌ Not logged in
     if (!token) {
       alert("Please login first");
-      window.location.href = "/login";
+      router.push("/login");
+      return;
+    }
+
+    if (!user || user.role !== "CLIENT") {
+      alert("Only client accounts can place orders");
       return;
     }
 
     // ✅ Logged in
     try {
-      await fetch(`${API}/api/cart`, {
+      const res = await fetch(`${API}/api/cart`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
-          productId,
-          quantity: 1
+          productId: product.id,
+          quantity: Number(product.moq) || 1
         })
       });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || "Error adding to cart");
+        return;
+      }
 
       alert("Added to cart");
     } catch (err) {
@@ -55,6 +57,27 @@ export default function Home() {
       alert("Error adding to cart");
     }
   };
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        const token = getToken();
+        const headers = token
+          ? { Authorization: `Bearer ${token}` }
+          : undefined;
+
+        const res = await fetch(`${API}/api/products`, {
+          headers
+        });
+        const data = await res.json();
+        setProducts(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    loadProducts();
+  }, [API]);
 
   return (
     <div className="min-h-screen text-white">
@@ -137,8 +160,9 @@ export default function Home() {
             >
 
               <img
-                src={product.image}
+                src={product.image || "/industrial.jpg"}
                 className="h-40 w-full object-cover"
+                alt={product.name}
               />
 
               <div className="p-4">
@@ -147,20 +171,39 @@ export default function Home() {
                   {product.name}
                 </h3>
 
-                <p className="text-green-400 font-bold">
+                <p className="hidden">
                   ₹{product.finalPrice}
                 </p>
+
+                {viewerRole === "CLIENT" ? (
+                  <p className="text-sm text-gray-300">
+                    Client Price: {formatPrice(product.finalPrice)}
+                  </p>
+                ) : (
+                  <p className="text-sm text-gray-400">
+                    Client pricing is visible only after client login.
+                  </p>
+                )}
 
                 <p className="text-gray-400 text-sm">
                   MOQ: {product.moq}
                 </p>
 
-                <button
-                  onClick={() => addToCart(product.id)}
-                  className="w-full mt-3 bg-orange-600 py-2 rounded hover:bg-orange-700"
-                >
-                  Add to Cart
-                </button>
+                {viewerRole === "CLIENT" ? (
+                  <button
+                    onClick={() => addToCart(product)}
+                    className="w-full mt-3 bg-orange-600 py-2 rounded hover:bg-orange-700"
+                  >
+                    Add to Cart
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => router.push("/login")}
+                    className="w-full mt-3 bg-orange-600 py-2 rounded hover:bg-orange-700"
+                  >
+                    Login as Client
+                  </button>
+                )}
 
               </div>
             </div>

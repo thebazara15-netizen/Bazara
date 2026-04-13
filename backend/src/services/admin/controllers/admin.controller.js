@@ -1,36 +1,48 @@
-const Product = require('../../../models/Product');
+const adminService = require('../services/admin.service');
 
 // ✅ GET USERS
 exports.getUsers = async (req, res) => {
-  res.json({ message: "Users API working" });
+  try {
+    const users = await adminService.getUsers();
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 // ✅ APPROVE VENDOR
 exports.approveVendor = async (req, res) => {
-  res.json({ message: "Vendor approved" });
+  try {
+    const user = await adminService.approveVendor(req.params.id);
+    res.json(user);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
 };
 
 // ✅ GET ORDERS
 exports.getOrders = async (req, res) => {
-  res.json({ message: "Orders fetched" });
+  try {
+    const orders = await adminService.getOrders();
+    res.json(orders);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.getProducts = async (req, res) => {
+  try {
+    const products = await adminService.getProducts();
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 // ✅ UPDATE MARGIN (YOUR ORIGINAL LOGIC — UNCHANGED)
 exports.updateMargin = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { margin } = req.body;
-
-    const product = await Product.findByPk(id);
-
-    if (!product) {
-      return res.status(404).json({ message: "Product not found" });
-    }
-
-    product.margin = margin;
-    product.finalPrice = product.basePrice + margin;
-
-    await product.save();
+    const product = await adminService.updateMargin(req.params.id, req.body.margin);
 
     res.json({
       message: "Margin updated successfully",
@@ -38,6 +50,6 @@ exports.updateMargin = async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(400).json({ message: error.message });
   }
 };

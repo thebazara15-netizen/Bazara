@@ -5,11 +5,11 @@ const Cart = sequelize.define('Cart', {
   userId: DataTypes.INTEGER
 });
 
-const Product = require('./Product');
+const CartItem = require('./CartItem');
 
-Cart.belongsTo(Product, {
-  foreignKey: 'productId',
-  as: 'product'
+Cart.hasMany(CartItem, {
+  foreignKey: 'cartId',
+  as: 'items'
 });
 
 module.exports = Cart;

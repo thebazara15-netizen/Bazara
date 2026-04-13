@@ -1,4 +1,22 @@
+const jwt = require('jsonwebtoken');
+
 const Product = require('../../../models/Product');
+const { getDisplayPrice } = require('../../../utils/pricingEngine');
+
+const getViewerRole = (req) => {
+  const token = req.headers.authorization?.split(' ')[1];
+
+  if (!token) {
+    return null;
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    return decoded.role;
+  } catch {
+    return null;
+  }
+};
 
 // Create Product
 exports.createProduct = async (req, res) => {
@@ -16,7 +34,7 @@ exports.createProduct = async (req, res) => {
       basePrice,
       image, // ✅ store only filename
       margin: 0,
-      finalPrice: basePrice
+      finalPrice: getDisplayPrice({ basePrice, moq, pricingTiers: [], margin: 0 })
     });
 
     res.json(product);
@@ -30,9 +48,12 @@ exports.createProduct = async (req, res) => {
 exports.getProducts = async (req, res) => {
   try {
     const products = await Product.findAll();
+    const viewerRole = getViewerRole(req);
+    const canViewClientPrice = viewerRole === 'CLIENT' || viewerRole === 'ADMIN';
 
     const updatedProducts = products.map(p => ({
       ...p.toJSON(),
+      finalPrice: canViewClientPrice ? getDisplayPrice(p) : null,
       image: p.image
         ? `${req.protocol}://${req.get('host')}/uploads/${p.image}`
         : null

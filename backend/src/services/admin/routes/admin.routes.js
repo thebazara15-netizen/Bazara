@@ -14,5 +14,6 @@ router.get('/orders', auth, role(['ADMIN']), adminController.getOrders);
 
 // ✅ Margin API
 router.put('/product/:id/margin', auth, role(['ADMIN']), adminController.updateMargin);
+router.get('/products', auth, role(['ADMIN']), adminController.getProducts);
 
 module.exports = router;

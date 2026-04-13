@@ -3,10 +3,13 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
+const formatPrice = (value) => `Rs. ${Number(value || 0).toFixed(2)}`;
+
 export default function CartPage() {
   const router = useRouter();
 
   const [cart, setCart] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const API = process.env.NEXT_PUBLIC_API_URL;
 
@@ -36,6 +39,8 @@ export default function CartPage() {
   // ✅ FETCH CART
   const fetchCart = async (token) => {
     try {
+      setLoading(true);
+
       const res = await fetch(`${API}/api/cart`, {
         headers: {
           Authorization: `Bearer ${token}`
@@ -43,9 +48,41 @@ export default function CartPage() {
       });
 
       const data = await res.json();
-      setCart(data);
+
+      if (!res.ok) {
+        alert(data.message || "Unable to load cart");
+        return;
+      }
+
+      const items = Array.isArray(data) ? data : [];
+
+      setCart(
+        items.map((item) => {
+          const quantity = Number(item?.quantity || 0);
+          const linePrice = Number(item?.price || 0);
+          const fallbackUnitPrice =
+            quantity > 0 ? linePrice / quantity : 0;
+
+          return {
+            ...item,
+            product: {
+              name: item?.product?.name || "Product unavailable",
+              image: item?.product?.image || "/industrial.jpg",
+              finalPrice: Number(
+                item?.product?.finalPrice ??
+                  item?.product?.basePrice ??
+                  fallbackUnitPrice
+              ),
+              ...item?.product
+            }
+          };
+        })
+      );
     } catch (error) {
       console.error(error);
+      alert("Error loading cart");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -55,56 +92,102 @@ export default function CartPage() {
 
     const token = getToken();
 
-    await fetch(`${API}/api/cart/${cartId}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify({ quantity })
-    });
+    try {
+      const res = await fetch(`${API}/api/cart/${cartId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ quantity })
+      });
 
-    fetchCart(token);
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || "Unable to update quantity");
+        return;
+      }
+
+      fetchCart(token);
+    } catch (error) {
+      console.error(error);
+      alert("Error updating cart");
+    }
   };
 
   // ✅ REMOVE ITEM
   const removeItem = async (cartId) => {
     const token = getToken();
 
-    await fetch(`${API}/api/cart/${cartId}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
+    try {
+      const res = await fetch(`${API}/api/cart/${cartId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
 
-    fetchCart(token);
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || "Unable to remove item");
+        return;
+      }
+
+      fetchCart(token);
+    } catch (error) {
+      console.error(error);
+      alert("Error removing item");
+    }
   };
 
   // ✅ PLACE ORDER
   const placeOrder = async () => {
     const token = getToken();
 
-    const res = await fetch(`${API}/api/orders`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
+    try {
+      const res = await fetch(`${API}/api/orders`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
 
-    if (res.ok) {
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || "Order failed");
+        return;
+      }
+
       alert("Order placed successfully");
       fetchCart(token);
-    } else {
-      alert("Order failed");
+    } catch (error) {
+      console.error(error);
+      alert("Error placing order");
     }
   };
 
   // ✅ TOTAL
-  const total = cart.reduce(
-    (sum, item) => sum + item.product.finalPrice * item.quantity,
-    0
-  );
+  const getUnitPrice = (item) => {
+    const productPrice = Number(item?.product?.finalPrice ?? item?.product?.basePrice);
+
+    if (Number.isFinite(productPrice)) {
+      return productPrice;
+    }
+
+    const linePrice = Number(item?.price);
+    const quantity = Number(item?.quantity);
+
+    if (Number.isFinite(linePrice) && Number.isFinite(quantity) && quantity > 0) {
+      return linePrice / quantity;
+    }
+
+    return 0;
+  };
+
+  const total = cart.reduce((sum, item) => sum + Number(item?.price || 0), 0);
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-6">
@@ -112,7 +195,9 @@ export default function CartPage() {
       <h1 className="text-3xl font-bold mb-6">Your Cart</h1>
 
       {/* Cart Items */}
-      {cart.length === 0 ? (
+      {loading ? (
+        <p>Loading cart...</p>
+      ) : cart.length === 0 ? (
         <p>No items in cart</p>
       ) : (
         cart.map(item => (
@@ -123,19 +208,27 @@ export default function CartPage() {
 
             {/* Image */}
             <img
-              src={item.product.image}
-              alt={item.product.name}
+              src={item.product?.image || "/industrial.jpg"}
+              alt={item.product?.name || "Product image"}
               className="w-24 h-24 object-cover rounded mr-4"
             />
 
             {/* Info */}
             <div className="flex-1">
               <h2 className="text-lg font-semibold">
-                {item.product.name}
+                {item.product?.name || "Product unavailable"}
               </h2>
 
               <p className="text-gray-400">
                 ₹{item.product.finalPrice}
+              </p>
+
+              <p className="text-gray-400">
+                Unit Price: {formatPrice(getUnitPrice(item))}
+              </p>
+
+              <p className="text-gray-400">
+                Line Total: {formatPrice(item.price)}
               </p>
 
               {/* Quantity */}
@@ -176,9 +269,14 @@ export default function CartPage() {
           Total: ₹{total}
         </h2>
 
+        <p className="mt-2 text-gray-300">
+          Grand Total: {formatPrice(total)}
+        </p>
+
         <button
           onClick={placeOrder}
-          className="mt-4 bg-orange-600 px-6 py-3 rounded hover:bg-orange-700"
+          disabled={cart.length === 0}
+          className="mt-4 bg-orange-600 px-6 py-3 rounded hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           Place Order
         </button>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { setTokenCookie } from "../../utils/auth";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -33,24 +34,31 @@ export default function LoginPage() {
       const data = await res.json();
 
     if (res.ok) {
-      document.cookie = `token=${data.token}; path=/; max-age=86400; samesite=None; secure`;
+      setTokenCookie(data.token);
 
       // ✅ CHECK IF USER WAS REDIRECTED FROM SOME PAGE
       const redirect = localStorage.getItem("redirect");
+      const defaultRoute =
+        data.user.role === "ADMIN"
+          ? "/admin"
+          : data.user.role === "VENDOR"
+            ? "/vendor"
+            : "/";
 
-      if (redirect) {
-        router.push(redirect);
-        localStorage.removeItem("redirect");
-        return;
-      }
+      const allowedRedirects =
+        data.user.role === "ADMIN"
+          ? ["/admin"]
+          : data.user.role === "VENDOR"
+            ? ["/vendor", "/cart"]
+            : ["/cart", "/"];
+
+      localStorage.removeItem("redirect");
 
       // ✅ YOUR EXISTING ROLE LOGIC (UNCHANGED)
-      if (data.user.role === "ADMIN") {
-        router.push("/admin");
-      } else if (data.user.role === "VENDOR") {
-        router.push("/vendor");
+      if (redirect && allowedRedirects.includes(redirect)) {
+        router.push(redirect);
       } else {
-        router.push("/");
+        router.push(defaultRoute);
       }
 
     } else {

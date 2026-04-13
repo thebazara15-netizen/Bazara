@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { setTokenCookie } from "../../utils/auth";
 
 export default function Register() {
   const router = useRouter();
@@ -52,7 +53,12 @@ export default function Register() {
 
         const loginData = await loginRes.json();
 
-        document.cookie = `token=${loginData.token}; path=/; max-age=86400`;
+        if (!loginRes.ok) {
+          alert(loginData.message || "Login failed after signup");
+          return;
+        }
+
+        setTokenCookie(loginData.token);
 
         router.push("/");
       } else {

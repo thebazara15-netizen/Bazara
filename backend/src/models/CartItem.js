@@ -8,4 +8,11 @@ const CartItem = sequelize.define('CartItem', {
   price: DataTypes.FLOAT
 });
 
+const Product = require('./Product');
+
+CartItem.belongsTo(Product, {
+  foreignKey: 'productId',
+  as: 'product'
+});
+
 module.exports = CartItem;

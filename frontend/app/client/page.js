@@ -1,43 +1,53 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { decodeToken, getToken } from "../../utils/auth";
+
+const formatPrice = (value) => `Rs. ${Number(value || 0).toFixed(2)}`;
 
 export default function ClientDashboard() {
+  const router = useRouter();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const API = process.env.NEXT_PUBLIC_API_URL;
-
-  const token =
-    typeof document !== "undefined"
-      ? document.cookie
-          .split("; ")
-          .find(row => row.startsWith("token="))
-          ?.split("=")[1]
-      : null;
+  const token = getToken();
 
   // ✅ Protect page
   useEffect(() => {
+    const user = token ? decodeToken(token) : null;
+
     if (!token) {
-      window.location.href = "/login";
-    } else {
-      fetchProducts();
+      router.push("/login");
+      return;
     }
-  }, []);
+
+    if (!user || user.role !== "CLIENT") {
+      router.push("/");
+      return;
+    }
+
+    fetchProducts();
+  }, [router, token]);
 
   // ✅ Fetch products
   const fetchProducts = async () => {
     try {
-      const res = await fetch(`${API}/api/products`);
+      const res = await fetch(`${API}/api/products`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       const data = await res.json();
-      setProducts(data);
+      setProducts(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error(error);
     }
   };
 
   // ✅ Add to cart
-  const addToCart = async (productId) => {
+  const addToCart = async (product) => {
     if (!token) {
       alert("Please login first");
       return;
@@ -54,8 +64,8 @@ export default function ClientDashboard() {
           Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
-          productId,
-          quantity: 500
+          productId: product.id,
+          quantity: Number(product.moq) || 1
         })
       });
 
@@ -115,10 +125,12 @@ export default function ClientDashboard() {
 
               {/* Image */}
               <img
-                src={product.image}
+                src={product.image || "/industrial.jpg"}
                 alt={product.name}
                 className="w-full h-48 object-cover"
-                onError={(e) => (e.target.src = "/no-image.png")}
+                onError={(e) => {
+                  e.currentTarget.src = "/industrial.jpg";
+                }}
               />
 
               <div className="p-4">
@@ -127,8 +139,12 @@ export default function ClientDashboard() {
                   {product.name}
                 </h2>
 
-                <p className="text-green-400 font-bold text-lg">
+                <p className="hidden">
                   ₹{product.finalPrice}
+                </p>
+
+                <p className="text-sm text-gray-300">
+                  Client Price: {formatPrice(product.finalPrice)}
                 </p>
 
                 <p className="text-gray-400 mb-3">
@@ -136,7 +152,7 @@ export default function ClientDashboard() {
                 </p>
 
                 <button
-                  onClick={() => addToCart(product.id)}
+                  onClick={() => addToCart(product)}
                   disabled={loading}
                   className="w-full bg-green-600 hover:bg-green-700 px-4 py-2 rounded mb-2"
                 >
