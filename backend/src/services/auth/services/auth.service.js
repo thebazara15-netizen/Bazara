@@ -40,7 +40,8 @@ exports.registerUser = async (data) => {
     lastName,
     companyName,
     gstNumber,
-    phone
+    phone,
+    isVerified: true // ✅ Auto-verify all users on signup (admins can mark as unverified if needed)
   });
 
   return user;

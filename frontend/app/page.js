@@ -115,83 +115,45 @@ export default function Home() {
   return (
     <div className="min-h-screen text-white">
 
-      {/* Navbar */}
-      <div className="flex justify-between items-center px-10 py-4 bg-white text-black shadow">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gray-300"></div>
-          <div>
-            <h1 className="font-bold text-lg">ERAM INSTRUMENTS</h1>
-            <p className="text-sm text-gray-600">
-              Industrial IoT & Compliance
-            </p>
-          </div>
-        </div>
-
-        <div className="flex gap-4">
-          {viewerRole === "ADMIN" && (
-            <Link href="/admin">
-              <button className="bg-purple-600 px-6 py-2 rounded-lg text-white hover:bg-purple-700">
-                Dashboard
-              </button>
-            </Link>
-          )}
-          <Link href="/login">
-            <button className="bg-orange-600 px-6 py-2 rounded-lg text-white hover:bg-orange-700">
-              Login
-            </button>
-          </Link>
-
-          {/* ✅ ONLY CHANGE: Register → Signup */}
-          <Link href="/register">
-            <button className="bg-green-600 px-6 py-2 rounded-lg text-white hover:bg-green-700">
-              Signup
-            </button>
-          </Link>
-        </div>
-      </div>
-
       {/* Hero Section */}
       <div
-        className="relative h-[85vh] flex flex-col justify-center items-center text-center bg-cover bg-center"
+        className="relative min-h-[90vh] flex flex-col justify-center items-center text-center bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: "url('/industrial.jpg')"
+          backgroundImage: "url('/industrial.jpg')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center'
         }}
       >
-        <div className="absolute inset-0 bg-black/60"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/70"></div>
 
-        <div className="relative z-10">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">
+        <div className="relative z-10 max-w-3xl px-6">
+          <h1 className="text-5xl md:text-6xl font-bold mb-6 text-white leading-tight">
             Industrial B2B Marketplace
           </h1>
 
-          <p className="text-gray-300 mb-8 max-w-xl">
-            Connect industries, manage bulk orders, and scale your business with our secure platform.
+          <p className="text-gray-200 mb-10 max-w-2xl mx-auto text-lg font-light leading-relaxed">
+            Connect with vetted vendors, manage bulk orders with precision, and scale your industrial business on our secure, enterprise-grade platform.
           </p>
 
-          <div className="flex gap-6 justify-center">
-            <Link href="/register">
-              <button className="bg-orange-600 px-8 py-3 rounded-full">
-                Register Industry
-              </button>
-            </Link>
-
-            <Link href="/login">
-              <button className="bg-green-600 px-8 py-3 rounded-full">
-                Client Login
-              </button>
-            </Link>
+          <div className="flex gap-6 justify-center flex-wrap">
+            <button className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white px-8 py-4 rounded-full font-bold text-lg shadow-lg hover:shadow-xl transition transform hover:scale-105">
+              Get Started
+            </button>
+            <button className="border-2 border-white text-white hover:bg-white/10 px-8 py-4 rounded-full font-bold text-lg transition backdrop-blur-sm">
+              Learn More
+            </button>
           </div>
         </div>
       </div>
 
       {/* 🔥 PRODUCT LIST SECTION */}
-      <div className="bg-gray-900 text-white py-16 px-10">
+      <div className="bg-gradient-to-b from-gray-900 to-black text-white py-20 px-10">
 
-        <h2 className="text-3xl font-bold mb-10 text-center">
-          Explore Products
-        </h2>
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-4xl font-bold mb-4 text-center">Featured Products</h2>
+          <p className="text-gray-400 text-center mb-12">Discover quality products from verified vendors</p>
 
-        <div className="grid md:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-4 gap-6">
 
           {products.map(product => {
             const images = product.images || [];
@@ -215,14 +177,14 @@ export default function Home() {
             return (
               <div
                 key={product.id}
-                className="bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:scale-105 transition"
+                className="bg-gray-800/50 backdrop-blur-sm rounded-xl overflow-hidden shadow-lg hover:shadow-2xl hover:scale-105 transition duration-300 border border-gray-700 hover:border-orange-500"
               >
 
                 {/* ✅ Image Gallery with Navigation */}
-                <div className="relative h-40 bg-gray-700 overflow-hidden group">
+                <div className="relative h-48 bg-gray-700 overflow-hidden group">
                   <img
                     src={currentImage}
-                    className="h-40 w-full object-cover"
+                    className="h-48 w-full object-cover"
                     alt={product.name}
                   />
 
@@ -260,27 +222,17 @@ export default function Home() {
                   )}
                 </div>
 
-                <div className="p-4">
+                <div className="p-5">
 
-                  <h3 className="text-lg font-semibold">
+                  <h3 className="text-lg font-bold mb-2 text-white line-clamp-2">
                     {product.name}
                   </h3>
 
-                  <p className="hidden">
-                    ₹{product.finalPrice}
+                  <p className="text-sm text-orange-400 font-semibold mb-2">
+                    {formatPrice(product.finalPrice)}
                   </p>
 
-                  {viewerRole === "CLIENT" ? (
-                    <p className="text-sm text-gray-300">
-                      Client Price: {formatPrice(product.finalPrice)}
-                    </p>
-                  ) : (
-                    <p className="text-sm text-gray-400">
-                      Client pricing is visible only after client login.
-                    </p>
-                  )}
-
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-gray-400 text-xs mb-4">
                     MOQ: {product.moq}
                   </p>
 
@@ -288,14 +240,14 @@ export default function Home() {
                     cartProducts.has(product.id) ? (
                       <button
                         onClick={() => router.push("/cart")}
-                        className="w-full mt-3 bg-green-600 py-2 rounded hover:bg-green-700 font-semibold"
+                        className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white py-2 rounded-lg font-bold transition shadow-md"
                       >
                         Go to Cart
                       </button>
                     ) : (
                       <button
                         onClick={() => addToCart(product)}
-                        className="w-full mt-3 bg-orange-600 py-2 rounded hover:bg-orange-700"
+                        className="w-full bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white py-2 rounded-lg font-bold transition shadow-md hover:shadow-lg"
                       >
                         Add to Cart
                       </button>
@@ -303,9 +255,9 @@ export default function Home() {
                   ) : (
                     <button
                       onClick={() => router.push("/login")}
-                      className="w-full mt-3 bg-orange-600 py-2 rounded hover:bg-orange-700"
+                      className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-2 rounded-lg font-bold transition shadow-md"
                     >
-                      Login as Client
+                      Login to Order
                     </button>
                   )}
 
@@ -315,45 +267,51 @@ export default function Home() {
           })}
 
         </div>
-
+        </div>
       </div>
 
       {/* Features Section */}
-      <div className="bg-white text-black py-16 px-10">
-        <div className="grid md:grid-cols-3 gap-10 text-center">
+      <div className="bg-gradient-to-b from-gray-900 to-black text-white py-20 px-10">
+        <h2 className="text-4xl font-bold text-center mb-16">Why Choose Bazara?</h2>
+        
+        <div className="grid md:grid-cols-3 gap-10 max-w-6xl mx-auto">
 
-          <div>
-            <div className="text-4xl mb-4">⚙️</div>
-            <h2 className="font-semibold text-lg">Industrial</h2>
-            <p className="text-gray-600">
-              Built for industrial scale operations
+          <div className="bg-gray-800/50 backdrop-blur-sm p-8 rounded-xl hover:bg-gray-800 transition shadow-lg hover:shadow-xl border border-gray-700">
+            <div className="text-5xl mb-4">⚙️</div>
+            <h3 className="font-bold text-xl mb-3">Industrial Grade</h3>
+            <p className="text-gray-300">
+              Built for industrial scale operations with enterprise-level security
             </p>
           </div>
 
-          <div>
-            <div className="text-4xl mb-4">📊</div>
-            <h2 className="font-semibold text-lg">Analytics</h2>
-            <p className="text-gray-600">
-              Data-driven insights for growth
+          <div className="bg-gray-800/50 backdrop-blur-sm p-8 rounded-xl hover:bg-gray-800 transition shadow-lg hover:shadow-xl border border-gray-700">
+            <div className="text-5xl mb-4">📊</div>
+            <h3 className="font-bold text-xl mb-3">Smart Analytics</h3>
+            <p className="text-gray-300">
+              Data-driven insights for smarter business decisions
             </p>
           </div>
 
-          <div>
-            <div className="text-4xl mb-4">☁️</div>
-            <h2 className="font-semibold text-lg">Cloud</h2>
-            <p className="text-gray-600">
-              24×7 availability with cloud support
+          <div className="bg-gray-800/50 backdrop-blur-sm p-8 rounded-xl hover:bg-gray-800 transition shadow-lg hover:shadow-xl border border-gray-700">
+            <div className="text-5xl mb-4">☁️</div>
+            <h3 className="font-bold text-xl mb-3">Always Available</h3>
+            <p className="text-gray-300">
+              24×7 cloud infrastructure with 99.9% uptime guarantee
             </p>
           </div>
-
         </div>
       </div>
 
       {/* Trusted Section */}
-      <div className="py-16 text-center bg-gray-100 text-black">
-        <h2 className="text-2xl font-bold">
-          Trusted by Industries & Compliance Teams
-        </h2>
+      <div className="bg-white text-black py-16 px-10">
+        <div className="max-w-6xl mx-auto text-center">
+          <h2 className="text-3xl font-bold mb-4">
+            Trusted by Industries Worldwide
+          </h2>
+          <p className="text-gray-600">
+            Powering bulk B2B transactions with confidence
+          </p>
+        </div>
       </div>
 
       {/* ✅ Toast Notification */}

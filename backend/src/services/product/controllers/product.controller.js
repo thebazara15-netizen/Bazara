@@ -22,6 +22,15 @@ const getViewerRole = (req) => {
 exports.createProduct = async (req, res) => {
   try {
     const { name, description, category, moq, stock, basePrice } = req.body || {};
+    const token = req.headers.authorization?.split(' ')[1];
+
+    // ✅ Extract vendor ID from token
+    if (!token) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const vendorId = decoded.id;
 
     // ✅ UPDATED: Handle multiple images
     const images = req.files ? req.files.map(file => file.filename) : [];
@@ -34,6 +43,7 @@ exports.createProduct = async (req, res) => {
       stock,
       basePrice,
       images, // ✅ store array of filenames
+      vendorId, // ✅ Save vendor ID
       margin: 0,
       finalPrice: getDisplayPrice({ basePrice, moq, pricingTiers: [], margin: 0 })
     });
@@ -45,20 +55,50 @@ exports.createProduct = async (req, res) => {
   }
 };
 
-// Get Products
+// Get Products (all products for clients/public)
 exports.getProducts = async (req, res) => {
   try {
     const products = await Product.findAll();
-    const viewerRole = getViewerRole(req);
-    const canViewClientPrice = viewerRole === 'CLIENT' || viewerRole === 'ADMIN';
 
     const updatedProducts = products.map(p => ({
       ...p.toJSON(),
-      finalPrice: canViewClientPrice ? getDisplayPrice(p) : null,
+      // ✅ UPDATED: Show price to everyone (client pricing only)
+      finalPrice: getDisplayPrice(p),
       // ✅ UPDATED: Handle multiple images array
       images: Array.isArray(p.images) && p.images.length > 0
         ? p.images.map(img => `${req.protocol}://${req.get('host')}/uploads/${img}`)
         : [`${req.protocol}://${req.get('host')}/industrial.jpg`] // fallback image
+    }));
+
+    res.json(updatedProducts);
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ✅ NEW: Get only vendor's own products
+exports.getVendorProducts = async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+
+    if (!token) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const vendorId = decoded.id;
+
+    const products = await Product.findAll({
+      where: { vendorId }
+    });
+
+    const updatedProducts = products.map(p => ({
+      ...p.toJSON(),
+      finalPrice: getDisplayPrice(p),
+      images: Array.isArray(p.images) && p.images.length > 0
+        ? p.images.map(img => `${req.protocol}://${req.get('host')}/uploads/${img}`)
+        : [`${req.protocol}://${req.get('host')}/industrial.jpg`]
     }));
 
     res.json(updatedProducts);

@@ -192,15 +192,7 @@ export default function CartPage() {
   return (
     <div className="min-h-screen bg-gray-900 text-white p-6">
 
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">Your Cart</h1>
-        <button
-          onClick={() => router.push("/")}
-          className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-semibold"
-        >
-          ← Back to Home
-        </button>
-      </div>
+      <h1 className="text-3xl font-bold mb-6">Your Cart</h1>
 
       {/* Cart Items */}
       {loading ? (
