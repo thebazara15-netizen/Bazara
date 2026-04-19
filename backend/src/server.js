@@ -10,7 +10,8 @@ async function startServer() {
     await sequelize.authenticate();
     console.log('PostgreSQL Connected');
 
-    await sequelize.sync();
+    // ✅ FIXED: Use alter: true to update existing tables
+    await sequelize.sync({ alter: true });
     console.log('Tables synced');
 
     app.listen(PORT, () => {

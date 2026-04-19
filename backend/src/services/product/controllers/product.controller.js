@@ -23,7 +23,8 @@ exports.createProduct = async (req, res) => {
   try {
     const { name, description, category, moq, stock, basePrice } = req.body || {};
 
-    const image = req.file ? req.file.filename : null;
+    // ✅ UPDATED: Handle multiple images
+    const images = req.files ? req.files.map(file => file.filename) : [];
 
     const product = await Product.create({
       name,
@@ -32,7 +33,7 @@ exports.createProduct = async (req, res) => {
       moq,
       stock,
       basePrice,
-      image, // ✅ store only filename
+      images, // ✅ store array of filenames
       margin: 0,
       finalPrice: getDisplayPrice({ basePrice, moq, pricingTiers: [], margin: 0 })
     });
@@ -54,9 +55,10 @@ exports.getProducts = async (req, res) => {
     const updatedProducts = products.map(p => ({
       ...p.toJSON(),
       finalPrice: canViewClientPrice ? getDisplayPrice(p) : null,
-      image: p.image
-        ? `${req.protocol}://${req.get('host')}/uploads/${p.image}`
-        : null
+      // ✅ UPDATED: Handle multiple images array
+      images: Array.isArray(p.images) && p.images.length > 0
+        ? p.images.map(img => `${req.protocol}://${req.get('host')}/uploads/${img}`)
+        : [`${req.protocol}://${req.get('host')}/industrial.jpg`] // fallback image
     }));
 
     res.json(updatedProducts);

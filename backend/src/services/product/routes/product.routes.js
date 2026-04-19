@@ -4,8 +4,8 @@ const router = express.Router();
 const productController = require('../controllers/product.controller');
 const upload = require('../../../middleware/upload.middleware');
 
-// ✅ THIS LINE IS THE KEY FIX
-router.post('/', upload.single('image'), productController.createProduct);
+// ✅ UPDATED: Handle multiple images with upload.array()
+router.post('/', upload.array('images', 10), productController.createProduct);
 
 // GET products
 router.get('/', productController.getProducts);

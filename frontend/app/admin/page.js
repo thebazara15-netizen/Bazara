@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "../../components/Sidebar";
@@ -222,12 +223,19 @@ export default function AdminDashboard() {
           <div className="mb-6 flex items-center justify-between">
             <h1 className="text-3xl font-bold">Admin Dashboard</h1>
 
-            <button
-              onClick={logout}
-              className="rounded bg-red-600 px-4 py-2"
-            >
-              Logout
-            </button>
+            <div className="flex gap-3">
+              <Link href="/">
+                <button className="rounded bg-blue-600 px-4 py-2 hover:bg-blue-700">
+                  ← Back to Home
+                </button>
+              </Link>
+              <button
+                onClick={logout}
+                className="rounded bg-red-600 px-4 py-2 hover:bg-red-700"
+              >
+                Logout
+              </button>
+            </div>
           </div>
 
           <div className="mb-10 grid gap-6 md:grid-cols-4">

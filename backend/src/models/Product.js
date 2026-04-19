@@ -38,9 +38,10 @@ const Product = sequelize.define('Product', {
     type: DataTypes.JSON // important for bulk pricing
   },
 
-  image: {
-    type: DataTypes.STRING,
-    allowNull: true
+  images: {
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: []
   },
 
   vendorId: {

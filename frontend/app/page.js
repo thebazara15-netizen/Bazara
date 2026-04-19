@@ -11,8 +11,17 @@ export default function Home() {
   const router = useRouter();
 
   const [products, setProducts] = useState([]);
+  const [currentImageIndex, setCurrentImageIndex] = useState({});
+  const [cartProducts, setCartProducts] = useState(new Set()); // ✅ Track added to cart products
+  const [toast, setToast] = useState(null); // ✅ Toast notification state
   const API = process.env.NEXT_PUBLIC_API_URL;
   const viewerRole = decodeToken(getToken())?.role || null;
+
+  // ✅ Show toast notification
+  const showToast = (message, actionLabel, action) => {
+    setToast({ message, actionLabel, action });
+    setTimeout(() => setToast(null), 5000); // Auto-hide after 5 seconds
+  };
 
   const addToCart = async (product) => {
     const token = getToken();
@@ -20,13 +29,12 @@ export default function Home() {
 
     // ❌ Not logged in
     if (!token) {
-      alert("Please login first");
-      router.push("/login");
+      showToast("Please login first", "LOGIN", () => router.push("/login"));
       return;
     }
 
     if (!user || user.role !== "CLIENT") {
-      alert("Only client accounts can place orders");
+      showToast("Only client accounts can place orders", "DISMISS", () => setToast(null));
       return;
     }
 
@@ -47,14 +55,16 @@ export default function Home() {
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.message || "Error adding to cart");
+        showToast(data.message || "Error adding to cart", "DISMISS", () => setToast(null));
         return;
       }
 
-      alert("Added to cart");
+      // ✅ Mark product as added to cart and show toast
+      setCartProducts(prev => new Set([...prev, product.id]));
+      showToast("Item added to cart", "GO TO CART", () => router.push("/cart"));
     } catch (err) {
       console.error(err);
-      alert("Error adding to cart");
+      showToast("Error adding to cart", "DISMISS", () => setToast(null));
     }
   };
 
@@ -76,7 +86,30 @@ export default function Home() {
       }
     };
 
+    // ✅ UPDATED: Fetch cart items to check which products are already added
+    const fetchCartProducts = async () => {
+      try {
+        const token = getToken();
+        if (!token) return;
+
+        const res = await fetch(`${API}/api/cart`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        const cartItems = await res.json();
+        if (Array.isArray(cartItems)) {
+          const productIds = new Set(cartItems.map(item => item.productId));
+          setCartProducts(productIds);
+        }
+      } catch (err) {
+        console.error("Error fetching cart:", err);
+      }
+    };
+
     loadProducts();
+    fetchCartProducts(); // ✅ Check cart on page load
   }, [API]);
 
   return (
@@ -95,15 +128,22 @@ export default function Home() {
         </div>
 
         <div className="flex gap-4">
+          {viewerRole === "ADMIN" && (
+            <Link href="/admin">
+              <button className="bg-purple-600 px-6 py-2 rounded-lg text-white hover:bg-purple-700">
+                Dashboard
+              </button>
+            </Link>
+          )}
           <Link href="/login">
-            <button className="bg-orange-600 px-6 py-2 rounded-lg text-white">
+            <button className="bg-orange-600 px-6 py-2 rounded-lg text-white hover:bg-orange-700">
               Login
             </button>
           </Link>
 
           {/* ✅ ONLY CHANGE: Register → Signup */}
           <Link href="/register">
-            <button className="bg-green-600 px-6 py-2 rounded-lg text-white">
+            <button className="bg-green-600 px-6 py-2 rounded-lg text-white hover:bg-green-700">
               Signup
             </button>
           </Link>
@@ -153,61 +193,126 @@ export default function Home() {
 
         <div className="grid md:grid-cols-4 gap-8">
 
-          {products.map(product => (
-            <div
-              key={product.id}
-              className="bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:scale-105 transition"
-            >
+          {products.map(product => {
+            const images = product.images || [];
+            const currentIdx = currentImageIndex[product.id] || 0;
+            const currentImage = images[currentIdx] || "/industrial.jpg";
 
-              <img
-                src={product.image || "/industrial.jpg"}
-                className="h-40 w-full object-cover"
-                alt={product.name}
-              />
+            const nextImage = () => {
+              setCurrentImageIndex(prev => ({
+                ...prev,
+                [product.id]: (currentIdx + 1) % images.length
+              }));
+            };
 
-              <div className="p-4">
+            const prevImage = () => {
+              setCurrentImageIndex(prev => ({
+                ...prev,
+                [product.id]: (currentIdx - 1 + images.length) % images.length
+              }));
+            };
 
-                <h3 className="text-lg font-semibold">
-                  {product.name}
-                </h3>
+            return (
+              <div
+                key={product.id}
+                className="bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:scale-105 transition"
+              >
 
-                <p className="hidden">
-                  ₹{product.finalPrice}
-                </p>
+                {/* ✅ Image Gallery with Navigation */}
+                <div className="relative h-40 bg-gray-700 overflow-hidden group">
+                  <img
+                    src={currentImage}
+                    className="h-40 w-full object-cover"
+                    alt={product.name}
+                  />
 
-                {viewerRole === "CLIENT" ? (
-                  <p className="text-sm text-gray-300">
-                    Client Price: {formatPrice(product.finalPrice)}
+                  {/* ✅ Navigation Buttons (show on hover for large screens) */}
+                  {images.length > 1 && (
+                    <>
+                      <button
+                        onClick={prevImage}
+                        className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition z-10"
+                      >
+                        ◀
+                      </button>
+                      <button
+                        onClick={nextImage}
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition z-10"
+                      >
+                        ▶
+                      </button>
+                    </>
+                  )}
+
+                  {/* ✅ Image Counter and Dots */}
+                  {images.length > 1 && (
+                    <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1">
+                      {images.map((_, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setCurrentImageIndex(prev => ({ ...prev, [product.id]: idx }))}
+                          className={`w-2 h-2 rounded-full transition ${
+                            idx === currentIdx ? "bg-orange-600" : "bg-gray-400"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-4">
+
+                  <h3 className="text-lg font-semibold">
+                    {product.name}
+                  </h3>
+
+                  <p className="hidden">
+                    ₹{product.finalPrice}
                   </p>
-                ) : (
-                  <p className="text-sm text-gray-400">
-                    Client pricing is visible only after client login.
+
+                  {viewerRole === "CLIENT" ? (
+                    <p className="text-sm text-gray-300">
+                      Client Price: {formatPrice(product.finalPrice)}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-gray-400">
+                      Client pricing is visible only after client login.
+                    </p>
+                  )}
+
+                  <p className="text-gray-400 text-sm">
+                    MOQ: {product.moq}
                   </p>
-                )}
 
-                <p className="text-gray-400 text-sm">
-                  MOQ: {product.moq}
-                </p>
+                  {viewerRole === "CLIENT" ? (
+                    cartProducts.has(product.id) ? (
+                      <button
+                        onClick={() => router.push("/cart")}
+                        className="w-full mt-3 bg-green-600 py-2 rounded hover:bg-green-700 font-semibold"
+                      >
+                        Go to Cart
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => addToCart(product)}
+                        className="w-full mt-3 bg-orange-600 py-2 rounded hover:bg-orange-700"
+                      >
+                        Add to Cart
+                      </button>
+                    )
+                  ) : (
+                    <button
+                      onClick={() => router.push("/login")}
+                      className="w-full mt-3 bg-orange-600 py-2 rounded hover:bg-orange-700"
+                    >
+                      Login as Client
+                    </button>
+                  )}
 
-                {viewerRole === "CLIENT" ? (
-                  <button
-                    onClick={() => addToCart(product)}
-                    className="w-full mt-3 bg-orange-600 py-2 rounded hover:bg-orange-700"
-                  >
-                    Add to Cart
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => router.push("/login")}
-                    className="w-full mt-3 bg-orange-600 py-2 rounded hover:bg-orange-700"
-                  >
-                    Login as Client
-                  </button>
-                )}
-
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
 
         </div>
 
@@ -250,6 +355,19 @@ export default function Home() {
           Trusted by Industries & Compliance Teams
         </h2>
       </div>
+
+      {/* ✅ Toast Notification */}
+      {toast && (
+        <div className="fixed bottom-0 left-0 right-0 bg-black/90 text-white py-4 px-6 flex items-center justify-between shadow-lg z-50">
+          <span className="text-sm">{toast.message}</span>
+          <button
+            onClick={toast.action}
+            className="ml-4 bg-orange-600 hover:bg-orange-700 px-4 py-2 rounded font-semibold text-sm whitespace-nowrap"
+          >
+            {toast.actionLabel}
+          </button>
+        </div>
+      )}
 
     </div>
   );
