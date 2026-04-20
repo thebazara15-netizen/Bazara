@@ -53,3 +53,32 @@ exports.updateMargin = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
+
+// ✅ NEW: Admin can edit any vendor's product (all fields)
+exports.editProduct = async (req, res) => {
+  try {
+    const product = await adminService.editProduct(req.params.id, req.body, req.files);
+    
+    res.json({
+      message: "Product updated successfully",
+      product
+    });
+
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// ✅ NEW: Admin can delete any product
+exports.deleteProduct = async (req, res) => {
+  try {
+    await adminService.deleteProduct(req.params.id);
+    
+    res.json({
+      message: "Product deleted successfully"
+    });
+
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};

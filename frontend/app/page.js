@@ -117,7 +117,7 @@ export default function Home() {
 
       {/* Hero Section */}
       <div
-        className="relative min-h-[90vh] flex flex-col justify-center items-center text-center bg-cover bg-center bg-no-repeat"
+        className="relative min-h-[60vh] md:min-h-[80vh] lg:min-h-[90vh] flex flex-col justify-center items-center text-center bg-cover bg-center bg-no-repeat"
         style={{
           backgroundImage: "url('/industrial.jpg')",
           backgroundSize: 'cover',
@@ -126,20 +126,20 @@ export default function Home() {
       >
         <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/70"></div>
 
-        <div className="relative z-10 max-w-3xl px-6">
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 text-white leading-tight">
+        <div className="relative z-10 max-w-3xl px-4 md:px-6">
+          <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6 text-white leading-tight">
             Industrial B2B Marketplace
           </h1>
 
-          <p className="text-gray-200 mb-10 max-w-2xl mx-auto text-lg font-light leading-relaxed">
+          <p className="text-sm md:text-base lg:text-lg text-gray-200 mb-6 md:mb-10 max-w-2xl mx-auto font-light leading-relaxed">
             Connect with vetted vendors, manage bulk orders with precision, and scale your industrial business on our secure, enterprise-grade platform.
           </p>
 
-          <div className="flex gap-6 justify-center flex-wrap">
-            <button className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white px-8 py-4 rounded-full font-bold text-lg shadow-lg hover:shadow-xl transition transform hover:scale-105">
+          <div className="flex gap-3 md:gap-6 justify-center flex-wrap">
+            <button className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white px-4 md:px-8 py-2 md:py-4 rounded-full font-bold text-sm md:text-lg shadow-lg hover:shadow-xl transition transform hover:scale-105">
               Get Started
             </button>
-            <button className="border-2 border-white text-white hover:bg-white/10 px-8 py-4 rounded-full font-bold text-lg transition backdrop-blur-sm">
+            <button className="border-2 border-white text-white hover:bg-white/10 px-4 md:px-8 py-2 md:py-4 rounded-full font-bold text-sm md:text-lg transition backdrop-blur-sm">
               Learn More
             </button>
           </div>
@@ -147,13 +147,13 @@ export default function Home() {
       </div>
 
       {/* 🔥 PRODUCT LIST SECTION */}
-      <div className="bg-gradient-to-b from-gray-900 to-black text-white py-20 px-10">
+      <div className="bg-gradient-to-b from-gray-900 to-black text-white py-12 md:py-20 px-4 md:px-10">
 
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-4xl font-bold mb-4 text-center">Featured Products</h2>
-          <p className="text-gray-400 text-center mb-12">Discover quality products from verified vendors</p>
+          <h2 className="text-2xl md:text-4xl font-bold mb-2 md:mb-4 text-center">Featured Products</h2>
+          <p className="text-gray-400 text-sm md:text-base text-center mb-8 md:mb-12">Discover quality products from verified vendors</p>
 
-          <div className="grid md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
 
           {products.map(product => {
             const images = product.images || [];
@@ -181,25 +181,25 @@ export default function Home() {
               >
 
                 {/* ✅ Image Gallery with Navigation */}
-                <div className="relative h-48 bg-gray-700 overflow-hidden group">
+                <div className="relative h-32 sm:h-40 md:h-48 bg-gray-700 overflow-hidden group">
                   <img
                     src={currentImage}
-                    className="h-48 w-full object-cover"
+                    className="w-full h-full object-cover"
                     alt={product.name}
                   />
 
-                  {/* ✅ Navigation Buttons (show on hover for large screens) */}
+                  {/* ✅ Navigation Buttons */}
                   {images.length > 1 && (
                     <>
                       <button
                         onClick={prevImage}
-                        className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition z-10"
+                        className="absolute left-1 sm:left-2 top-1/2 transform -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white px-1 sm:px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition z-10 text-xs sm:text-base"
                       >
                         ◀
                       </button>
                       <button
                         onClick={nextImage}
-                        className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition z-10"
+                        className="absolute right-1 sm:right-2 top-1/2 transform -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white px-1 sm:px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition z-10 text-xs sm:text-base"
                       >
                         ▶
                       </button>
@@ -222,17 +222,17 @@ export default function Home() {
                   )}
                 </div>
 
-                <div className="p-5">
+                <div className="p-3 sm:p-4 md:p-5">
 
-                  <h3 className="text-lg font-bold mb-2 text-white line-clamp-2">
+                  <h3 className="text-sm sm:text-base md:text-lg font-bold mb-2 text-white line-clamp-2">
                     {product.name}
                   </h3>
 
-                  <p className="text-sm text-orange-400 font-semibold mb-2">
+                  <p className="text-xs sm:text-sm text-orange-400 font-semibold mb-2">
                     {formatPrice(product.finalPrice)}
                   </p>
 
-                  <p className="text-gray-400 text-xs mb-4">
+                  <p className="text-gray-400 text-xs mb-3 sm:mb-4">
                     MOQ: {product.moq}
                   </p>
 
@@ -240,14 +240,14 @@ export default function Home() {
                     cartProducts.has(product.id) ? (
                       <button
                         onClick={() => router.push("/cart")}
-                        className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white py-2 rounded-lg font-bold transition shadow-md"
+                        className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white py-2 rounded-lg font-bold transition shadow-md text-xs sm:text-sm"
                       >
                         Go to Cart
                       </button>
                     ) : (
                       <button
                         onClick={() => addToCart(product)}
-                        className="w-full bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white py-2 rounded-lg font-bold transition shadow-md hover:shadow-lg"
+                        className="w-full bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white py-2 rounded-lg font-bold transition shadow-md hover:shadow-lg text-xs sm:text-sm"
                       >
                         Add to Cart
                       </button>
@@ -255,7 +255,7 @@ export default function Home() {
                   ) : (
                     <button
                       onClick={() => router.push("/login")}
-                      className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-2 rounded-lg font-bold transition shadow-md"
+                      className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-2 rounded-lg font-bold transition shadow-md text-xs sm:text-sm"
                     >
                       Login to Order
                     </button>

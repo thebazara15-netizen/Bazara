@@ -107,3 +107,36 @@ exports.getVendorProducts = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// ✅ NEW: Delete vendor's own product (vendors cannot modify, only delete)
+exports.deleteVendorProduct = async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+
+    if (!token) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const vendorId = Number(decoded.id); // ✅ Ensure it's a number
+
+    const product = await Product.findByPk(req.params.id);
+
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    // ✅ Only allow vendor to delete their own products (with type conversion)
+    if (Number(product.vendorId) !== vendorId) {
+      return res.status(403).json({ message: 'You can only delete your own products' });
+    }
+
+    await product.destroy();
+
+    res.json({ message: 'Product deleted successfully' });
+
+  } catch (error) {
+    console.error('Delete product error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};

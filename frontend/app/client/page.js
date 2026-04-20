@@ -107,61 +107,57 @@ export default function ClientDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-6">
+    <div className="min-h-screen bg-gray-900 text-white p-4 md:p-8">
 
-      <h1 className="text-3xl font-bold mb-6">Client Portal</h1>
+      <h1 className="text-2xl md:text-4xl font-bold mb-6 md:mb-8">Client Portal</h1>
 
       {/* Products */}
-      <div className="grid md:grid-cols-3 gap-8 mb-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8 mb-8 md:mb-10">
 
         {products.length === 0 ? (
-          <p>No products available</p>
+          <p className="text-sm md:text-base">No products available</p>
         ) : (
           products.map(product => (
             <div
               key={product.id}
-              className="bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition"
+              className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl hover:scale-105 transition duration-300"
             >
 
               {/* Image */}
               <img
                 src={product.image || "/industrial.jpg"}
                 alt={product.name}
-                className="w-full h-48 object-cover"
+                className="w-full h-32 sm:h-40 md:h-48 object-cover"
                 onError={(e) => {
                   e.currentTarget.src = "/industrial.jpg";
                 }}
               />
 
-              <div className="p-4">
+              <div className="p-3 md:p-4">
 
-                <h2 className="text-lg font-semibold mb-2">
+                <h2 className="text-sm md:text-lg font-semibold mb-2 truncate">
                   {product.name}
                 </h2>
 
-                <p className="hidden">
-                  ₹{product.finalPrice}
-                </p>
-
-                <p className="text-sm text-gray-300">
+                <p className="text-xs md:text-sm text-orange-400 font-semibold mb-1">
                   Client Price: {formatPrice(product.finalPrice)}
                 </p>
 
-                <p className="text-gray-400 mb-3">
+                <p className="text-gray-400 mb-3 text-xs md:text-sm">
                   MOQ: {product.moq}
                 </p>
 
                 <button
                   onClick={() => addToCart(product)}
                   disabled={loading}
-                  className="w-full bg-green-600 hover:bg-green-700 px-4 py-2 rounded mb-2"
+                  className="w-full bg-green-600 hover:bg-green-700 px-3 md:px-4 py-2 rounded mb-2 text-xs md:text-sm font-medium transition"
                 >
                   {loading ? "Adding..." : "Add to Cart"}
                 </button>
 
                 <a
                   href="/cart"
-                  className="block text-center bg-orange-600 px-4 py-2 rounded"
+                  className="block text-center bg-orange-600 hover:bg-orange-700 px-3 md:px-4 py-2 rounded text-xs md:text-sm font-medium transition"
                 >
                   Go to Cart
                 </a>
@@ -176,7 +172,7 @@ export default function ClientDashboard() {
       {/* Order */}
       <button
         onClick={placeOrder}
-        className="bg-orange-600 px-6 py-3 rounded"
+        className="w-full md:w-auto bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 px-4 md:px-6 py-2 md:py-3 rounded font-medium text-sm md:text-base transition shadow-lg"
       >
         Place Order
       </button>
