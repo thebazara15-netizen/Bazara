@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { decodeToken, getToken } from "../../utils/auth";
@@ -122,37 +123,41 @@ export default function ClientDashboard() {
               key={product.id}
               className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl hover:scale-105 transition duration-300"
             >
+              {/* Clickable Product Info Section */}
+              <Link href={`/product/${product.id}`} className="block cursor-pointer">
+                {/* Image */}
+                <img
+                  src={product.images?.[0] || "/industrial.jpg"}
+                  alt={product.name}
+                  className="w-full h-32 sm:h-40 md:h-48 object-cover hover:opacity-90 transition"
+                  onError={(e) => {
+                    e.currentTarget.src = "/industrial.jpg";
+                  }}
+                />
 
-              {/* Image */}
-              <img
-                src={product.image || "/industrial.jpg"}
-                alt={product.name}
-                className="w-full h-32 sm:h-40 md:h-48 object-cover"
-                onError={(e) => {
-                  e.currentTarget.src = "/industrial.jpg";
-                }}
-              />
+                <div className="p-3 md:p-4 pb-2 md:pb-3">
+                  <h2 className="text-sm md:text-lg font-semibold mb-2 truncate hover:text-orange-400 transition">
+                    {product.name}
+                  </h2>
 
-              <div className="p-3 md:p-4">
+                  <p className="text-xs md:text-sm text-orange-400 font-semibold mb-1">
+                    Client Price: {formatPrice(product.finalPrice)}
+                  </p>
 
-                <h2 className="text-sm md:text-lg font-semibold mb-2 truncate">
-                  {product.name}
-                </h2>
+                  <p className="text-gray-400 text-xs md:text-sm">
+                    MOQ: {product.moq}
+                  </p>
+                </div>
+              </Link>
 
-                <p className="text-xs md:text-sm text-orange-400 font-semibold mb-1">
-                  Client Price: {formatPrice(product.finalPrice)}
-                </p>
-
-                <p className="text-gray-400 mb-3 text-xs md:text-sm">
-                  MOQ: {product.moq}
-                </p>
-
+              {/* Action Buttons */}
+              <div className="px-3 md:px-4 pb-3 md:pb-4 pt-0 space-y-2">
                 <button
                   onClick={() => addToCart(product)}
                   disabled={loading}
                   className="w-full bg-green-600 hover:bg-green-700 px-3 md:px-4 py-2 rounded mb-2 text-xs md:text-sm font-medium transition"
                 >
-                  {loading ? "Adding..." : "Add to Cart"}
+                  {loading ? "Adding..." : "🛒 Add to Cart"}
                 </button>
 
                 <a
@@ -161,7 +166,6 @@ export default function ClientDashboard() {
                 >
                   Go to Cart
                 </a>
-
               </div>
             </div>
           ))

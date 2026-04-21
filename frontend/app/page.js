@@ -179,63 +179,78 @@ export default function Home() {
                 key={product.id}
                 className="bg-gray-800/50 backdrop-blur-sm rounded-xl overflow-hidden shadow-lg hover:shadow-2xl hover:scale-105 transition duration-300 border border-gray-700 hover:border-orange-500"
               >
+                {/* Clickable Product Info Section */}
+                <Link href={`/product/${product.id}`} className="block">
+                  <div className="cursor-pointer">
+                    {/* ✅ Image Gallery with Navigation */}
+                    <div className="relative h-32 sm:h-40 md:h-48 bg-gray-700 overflow-hidden group">
+                      <img
+                        src={currentImage}
+                        className="w-full h-full object-cover"
+                        alt={product.name}
+                      />
 
-                {/* ✅ Image Gallery with Navigation */}
-                <div className="relative h-32 sm:h-40 md:h-48 bg-gray-700 overflow-hidden group">
-                  <img
-                    src={currentImage}
-                    className="w-full h-full object-cover"
-                    alt={product.name}
-                  />
+                      {/* ✅ Navigation Buttons */}
+                      {images.length > 1 && (
+                        <>
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              prevImage();
+                            }}
+                            className="absolute left-1 sm:left-2 top-1/2 transform -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white px-1 sm:px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition z-10 text-xs sm:text-base"
+                          >
+                            ◀
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              nextImage();
+                            }}
+                            className="absolute right-1 sm:right-2 top-1/2 transform -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white px-1 sm:px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition z-10 text-xs sm:text-base"
+                          >
+                            ▶
+                          </button>
+                        </>
+                      )}
 
-                  {/* ✅ Navigation Buttons */}
-                  {images.length > 1 && (
-                    <>
-                      <button
-                        onClick={prevImage}
-                        className="absolute left-1 sm:left-2 top-1/2 transform -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white px-1 sm:px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition z-10 text-xs sm:text-base"
-                      >
-                        ◀
-                      </button>
-                      <button
-                        onClick={nextImage}
-                        className="absolute right-1 sm:right-2 top-1/2 transform -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white px-1 sm:px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition z-10 text-xs sm:text-base"
-                      >
-                        ▶
-                      </button>
-                    </>
-                  )}
-
-                  {/* ✅ Image Counter and Dots */}
-                  {images.length > 1 && (
-                    <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1">
-                      {images.map((_, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => setCurrentImageIndex(prev => ({ ...prev, [product.id]: idx }))}
-                          className={`w-2 h-2 rounded-full transition ${
-                            idx === currentIdx ? "bg-orange-600" : "bg-gray-400"
-                          }`}
-                        />
-                      ))}
+                      {/* ✅ Image Counter and Dots */}
+                      {images.length > 1 && (
+                        <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1">
+                          {images.map((_, idx) => (
+                            <button
+                              key={idx}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setCurrentImageIndex(prev => ({ ...prev, [product.id]: idx }));
+                              }}
+                              className={`w-2 h-2 rounded-full transition ${
+                                idx === currentIdx ? "bg-orange-600" : "bg-gray-400"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
 
-                <div className="p-3 sm:p-4 md:p-5">
+                    <div className="p-3 sm:p-4 md:p-5 pb-2 sm:pb-3 md:pb-3">
+                      <h3 className="text-sm sm:text-base md:text-lg font-bold mb-2 text-white line-clamp-2 hover:text-orange-400 transition">
+                        {product.name}
+                      </h3>
 
-                  <h3 className="text-sm sm:text-base md:text-lg font-bold mb-2 text-white line-clamp-2">
-                    {product.name}
-                  </h3>
+                      <p className="text-xs sm:text-sm text-orange-400 font-semibold mb-2">
+                        {formatPrice(product.finalPrice)}
+                      </p>
 
-                  <p className="text-xs sm:text-sm text-orange-400 font-semibold mb-2">
-                    {formatPrice(product.finalPrice)}
-                  </p>
+                      <p className="text-gray-400 text-xs">
+                        MOQ: {product.moq}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
 
-                  <p className="text-gray-400 text-xs mb-3 sm:mb-4">
-                    MOQ: {product.moq}
-                  </p>
-
+                {/* Action Buttons (Not clickable for navigation) */}
+                <div className="px-3 sm:px-4 md:px-5 pb-3 sm:pb-4 md:pb-5 pt-0">
                   {viewerRole === "CLIENT" ? (
                     cartProducts.has(product.id) ? (
                       <button
@@ -260,7 +275,6 @@ export default function Home() {
                       Login to Order
                     </button>
                   )}
-
                 </div>
               </div>
             );
