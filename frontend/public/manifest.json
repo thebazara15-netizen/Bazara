@@ -1,0 +1,38 @@
+{
+  "id": "/",
+  "name": "Bazara B2B Marketplace",
+  "short_name": "Bazara",
+  "description": "A mobile-ready B2B marketplace for clients, vendors, and admins.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#f97316",
+  "icons": [
+    {
+      "src": "/bazara-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/bazara-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/pwa-screenshot-wide.png",
+      "sizes": "640x360",
+      "type": "image/png",
+      "form_factor": "wide"
+    },
+    {
+      "src": "/pwa-screenshot-portrait.png",
+      "sizes": "360x640",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ]
+}
