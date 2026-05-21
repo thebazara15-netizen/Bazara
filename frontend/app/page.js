@@ -16,7 +16,7 @@ function HomeContent() {
   const [currentImageIndex, setCurrentImageIndex] = useState({});
   const [cartProducts, setCartProducts] = useState(new Set()); // ✅ Track added to cart products
   const [toast, setToast] = useState(null); // ✅ Toast notification state
-  const API = process.env.NEXT_PUBLIC_API_URL;
+  const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
   const viewerRole = decodeToken(getToken())?.role || null;
   const normalizedSearch = searchQuery.toLowerCase();
   const visibleProducts = normalizedSearch

@@ -34,6 +34,23 @@ const User = sequelize.define('User', {
 
   phone: {
     type: DataTypes.STRING
+  },
+
+  location: {
+    type: DataTypes.STRING
+  },
+
+  businessType: {
+    type: DataTypes.STRING
+  },
+
+  aboutCompany: {
+    type: DataTypes.TEXT
+  },
+
+  responseRate: {
+    type: DataTypes.INTEGER,
+    defaultValue: 80
   }
 
 }, {

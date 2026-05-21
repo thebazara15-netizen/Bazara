@@ -3,12 +3,17 @@ const cors = require('cors');
 const logger = require('./utils/logger');
 
 const app = express();
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  "http://localhost:3000",
+  "http://localhost:3001",
+  "http://127.0.0.1:3000",
+  "http://127.0.0.1:3001",
+  "https://bazara-pi.vercel.app"
+].filter(Boolean);
 
 app.use(cors({
-  origin: [
-    "http://localhost:3000",
-    "https://bazara-pi.vercel.app"
-  ],
+  origin: allowedOrigins,
   credentials: true
 }));
 app.use(express.json());
@@ -57,6 +62,27 @@ try {
   app.use('/api/admin', adminRoutes);
 } catch (e) {
   logger.error('adminRoutes error', e);
+}
+
+try {
+  const rfqRoutes = require('./services/rfq/routes/rfq.routes');
+  app.use('/api/rfqs', rfqRoutes);
+} catch (e) {
+  logger.error('rfqRoutes error', e);
+}
+
+try {
+  const inquiryRoutes = require('./services/inquiry/routes/inquiry.routes');
+  app.use('/api/inquiries', inquiryRoutes);
+} catch (e) {
+  logger.error('inquiryRoutes error', e);
+}
+
+try {
+  const supplierRoutes = require('./services/supplier/routes/supplier.routes');
+  app.use('/api/suppliers', supplierRoutes);
+} catch (e) {
+  logger.error('supplierRoutes error', e);
 }
 
 app.get('/', (req, res) => {

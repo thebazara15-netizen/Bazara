@@ -18,7 +18,7 @@ export default function ProductDetails() {
   const [quantity, setQuantity] = useState(1);
   const [toast, setToast] = useState(null);
 
-  const API = process.env.NEXT_PUBLIC_API_URL;
+  const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
   const token = getToken();
   const viewerRole = token ? decodeToken(token)?.role : null;
 
@@ -90,6 +90,44 @@ export default function ProductDetails() {
     } catch (error) {
       console.error(error);
       showToast("Error adding to cart", "OK", () => setToast(null));
+    }
+  };
+
+  const contactSupplier = async () => {
+    if (!token) {
+      showToast("Please login first", "LOGIN", () => router.push("/login"));
+      return;
+    }
+
+    const user = decodeToken(token);
+    if (!user || user.role !== "CLIENT") {
+      showToast("Only client accounts can contact suppliers", "OK", () => setToast(null));
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API}/api/inquiries`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          productId: product.id,
+          quantity: Number(quantity),
+          message: `Interested in ${product.name}. Please share best price and delivery details.`
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        showToast(data.message || "Unable to contact supplier", "OK", () => setToast(null));
+        return;
+      }
+
+      showToast("Inquiry sent to supplier", "OK", () => setToast(null));
+    } catch (error) {
+      console.error(error);
+      showToast("Unable to contact supplier", "OK", () => setToast(null));
     }
   };
 
@@ -226,6 +264,11 @@ export default function ProductDetails() {
                 <span>Category: <span className="font-semibold text-white">{product.category || "Not specified"}</span></span>
                 <span className="text-amber-300">4.5 rating</span>
                 <span>123 reviews</span>
+                {product.vendorId && (
+                  <Link href={`/suppliers/${product.vendorId}`} className="font-semibold text-sky-300 hover:text-sky-200">
+                    View supplier
+                  </Link>
+                )}
               </div>
 
               <div className="mt-5 rounded-lg border border-orange-500/30 bg-gradient-to-br from-orange-500/15 to-red-500/10 p-4">
@@ -331,8 +374,11 @@ export default function ProductDetails() {
                   Add to Cart
                 </button>
                 {token && viewerRole === "CLIENT" && (
-                  <button className="flex-1 rounded-full border border-white/15 bg-white/[0.04] px-6 py-3 text-sm font-extrabold text-white transition hover:border-sky-400/50 hover:bg-sky-400/10">
-                    Chat Now
+                  <button
+                    onClick={contactSupplier}
+                    className="flex-1 rounded-full border border-white/15 bg-white/[0.04] px-6 py-3 text-sm font-extrabold text-white transition hover:border-sky-400/50 hover:bg-sky-400/10"
+                  >
+                    Contact Supplier
                   </button>
                 )}
                 <button

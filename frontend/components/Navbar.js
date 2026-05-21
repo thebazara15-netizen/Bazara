@@ -250,6 +250,18 @@ export default function Navbar() {
 
         <div className="order-2 flex items-center gap-1 md:order-3">
           <div className="hidden items-center gap-1 lg:flex">
+            <Link
+              href="/suppliers"
+              className="rounded-full px-3 py-2 text-sm font-semibold text-slate-200 transition hover:bg-white/10 hover:text-white"
+            >
+              Suppliers
+            </Link>
+            <Link
+              href="/rfq"
+              className="rounded-full px-3 py-2 text-sm font-semibold text-slate-200 transition hover:bg-white/10 hover:text-white"
+            >
+              RFQ
+            </Link>
             <NavIconButton label="Language and currency">
               <Icon name="globe" />
               <span className="ml-2 text-sm font-medium">English-INR</span>

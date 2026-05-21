@@ -17,7 +17,7 @@ export default function CartPage() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [updatingId, setUpdatingId] = useState(null);
 
-  const API = process.env.NEXT_PUBLIC_API_URL;
+  const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
   const getToken = () => {
     if (typeof document === "undefined") return null;

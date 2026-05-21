@@ -11,6 +11,9 @@ export default function VendorDashboard() {
   const [selectedImages, setSelectedImages] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
   const [currentImageIndex, setCurrentImageIndex] = useState({});
+  const [inquiries, setInquiries] = useState([]);
+  const [rfqs, setRfqs] = useState([]);
+  const [quoteInputs, setQuoteInputs] = useState({});
   const [openMenuId, setOpenMenuId] = useState(null); // ✅ NEW: Track open dropdown menu
 
   const [form, setForm] = useState({
@@ -22,7 +25,7 @@ export default function VendorDashboard() {
     basePrice: ""
   });
 
-  const API = process.env.NEXT_PUBLIC_API_URL;
+  const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
   // ✅ Get token
   const getToken = () => {
@@ -61,7 +64,29 @@ export default function VendorDashboard() {
     }
 
     fetchProducts(token);
+    fetchLeads(token);
   }, []);
+
+  const fetchLeads = async (token) => {
+    try {
+      const [inquiryRes, rfqRes] = await Promise.all([
+        fetch(`${API}/api/inquiries/vendor`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        fetch(`${API}/api/rfqs`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      ]);
+      const inquiryData = await inquiryRes.json();
+      const rfqData = await rfqRes.json();
+      setInquiries(Array.isArray(inquiryData) ? inquiryData : []);
+      setRfqs(Array.isArray(rfqData) ? rfqData : []);
+    } catch (error) {
+      console.error(error);
+      setInquiries([]);
+      setRfqs([]);
+    }
+  };
 
   // ✅ Fetch Products (only vendor's own)
   const fetchProducts = async (token) => {
@@ -222,6 +247,57 @@ export default function VendorDashboard() {
     }
   };
 
+  const updateInquiryStatus = async (inquiryId, status) => {
+    const token = getToken();
+    try {
+      const res = await fetch(`${API}/api/inquiries/${inquiryId}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ status })
+      });
+      if (res.ok) fetchLeads(token);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const sendQuote = async (rfqId) => {
+    const token = getToken();
+    const input = quoteInputs[rfqId] || {};
+
+    if (!input.price) {
+      alert("Quote price is required");
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API}/api/rfqs/${rfqId}/quotes`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(input)
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || "Unable to send quote");
+        return;
+      }
+
+      alert("Quote sent");
+      setQuoteInputs((prev) => ({ ...prev, [rfqId]: {} }));
+      fetchLeads(token);
+    } catch (error) {
+      console.error(error);
+      alert("Unable to send quote");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white p-4 md:p-8">
 
@@ -231,6 +307,84 @@ export default function VendorDashboard() {
           Vendor Dashboard
         </h1>
         <p className="text-gray-400 text-sm md:text-lg">Manage and showcase your premium products</p>
+      </div>
+
+      <div className="mb-8 grid gap-4 xl:grid-cols-2">
+        <section className="rounded-xl border border-gray-700/50 bg-gray-800/40 p-4 md:p-6">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="text-lg font-bold text-white">Buyer Inquiries</h2>
+            <span className="rounded-full bg-sky-400/10 px-3 py-1 text-xs font-bold text-sky-300">{inquiries.length} leads</span>
+          </div>
+          <div className="space-y-3 max-h-80 overflow-y-auto">
+            {inquiries.length === 0 ? (
+              <p className="py-6 text-center text-sm text-gray-400">No product inquiries yet.</p>
+            ) : inquiries.map((inquiry) => (
+              <div key={inquiry.id} className="rounded-lg border border-gray-700 bg-gray-900/50 p-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="font-semibold text-white">{inquiry.product?.name || "Product inquiry"}</p>
+                    <p className="mt-1 text-xs text-gray-400">
+                      {inquiry.buyer?.companyName || inquiry.buyer?.email || "Buyer"} · Qty {inquiry.quantity}
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-orange-400/10 px-2 py-1 text-xs font-bold text-orange-300">{inquiry.status}</span>
+                </div>
+                <p className="mt-2 text-sm text-gray-300">{inquiry.message || "Buyer requested more details."}</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {["CONTACTED", "QUOTED", "CLOSED"].map((status) => (
+                    <button
+                      key={status}
+                      onClick={() => updateInquiryStatus(inquiry.id, status)}
+                      className="rounded-full border border-white/10 px-3 py-1 text-xs font-semibold text-gray-200 hover:bg-white/10"
+                    >
+                      {status}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="rounded-xl border border-gray-700/50 bg-gray-800/40 p-4 md:p-6">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="text-lg font-bold text-white">Open RFQs</h2>
+            <span className="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-bold text-emerald-300">{rfqs.length} open</span>
+          </div>
+          <div className="space-y-3 max-h-80 overflow-y-auto">
+            {rfqs.length === 0 ? (
+              <p className="py-6 text-center text-sm text-gray-400">No open RFQs right now.</p>
+            ) : rfqs.slice(0, 8).map((rfq) => (
+              <div key={rfq.id} className="rounded-lg border border-gray-700 bg-gray-900/50 p-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="font-semibold text-white">{rfq.title}</p>
+                    <p className="mt-1 text-xs text-gray-400">{rfq.quantity} {rfq.unit} · {rfq.deliveryLocation || "Delivery TBD"}</p>
+                  </div>
+                  <span className="rounded-full bg-sky-400/10 px-2 py-1 text-xs font-bold text-sky-300">{rfq.category || "General"}</span>
+                </div>
+                <div className="mt-3 grid grid-cols-1 gap-2 md:grid-cols-[1fr_1fr_auto]">
+                  <input
+                    type="number"
+                    placeholder="Quote price"
+                    value={quoteInputs[rfq.id]?.price || ""}
+                    onChange={(event) => setQuoteInputs((prev) => ({ ...prev, [rfq.id]: { ...prev[rfq.id], price: event.target.value } }))}
+                    className="rounded-lg border border-gray-700 bg-gray-950/60 px-3 py-2 text-sm outline-none focus:border-orange-500"
+                  />
+                  <input
+                    placeholder="Message"
+                    value={quoteInputs[rfq.id]?.message || ""}
+                    onChange={(event) => setQuoteInputs((prev) => ({ ...prev, [rfq.id]: { ...prev[rfq.id], message: event.target.value } }))}
+                    className="rounded-lg border border-gray-700 bg-gray-950/60 px-3 py-2 text-sm outline-none focus:border-orange-500"
+                  />
+                  <button onClick={() => sendQuote(rfq.id)} className="rounded-lg bg-orange-600 px-4 py-2 text-sm font-bold hover:bg-orange-700">
+                    Quote
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
       </div>
 
       {/* Add Product Form - Premium Card */}

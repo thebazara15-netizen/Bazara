@@ -2,7 +2,10 @@ const jwt = require('jsonwebtoken');
 const logger = require('../../../utils/logger');
 
 const Product = require('../../../models/Product');
+const User = require('../../../models/user');
 const { getDisplayPrice } = require('../../../utils/pricingEngine');
+
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
 const getViewerRole = (req) => {
   const token = req.headers.authorization?.split(' ')[1];
@@ -68,7 +71,7 @@ exports.getProducts = async (req, res) => {
       // ✅ UPDATED: Handle multiple images array
       images: Array.isArray(p.images) && p.images.length > 0
         ? p.images.map(img => `${req.protocol}://${req.get('host')}/uploads/${img}`)
-        : [`${req.protocol}://${req.get('host')}/industrial.jpg`] // fallback image
+        : [`${FRONTEND_URL}/industrial.jpg`] // fallback image
     }));
 
     res.json(updatedProducts);
@@ -99,7 +102,7 @@ exports.getVendorProducts = async (req, res) => {
       finalPrice: getDisplayPrice(p),
       images: Array.isArray(p.images) && p.images.length > 0
         ? p.images.map(img => `${req.protocol}://${req.get('host')}/uploads/${img}`)
-        : [`${req.protocol}://${req.get('host')}/industrial.jpg`]
+        : [`${FRONTEND_URL}/industrial.jpg`]
     }));
 
     res.json(updatedProducts);

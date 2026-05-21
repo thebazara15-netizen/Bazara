@@ -38,7 +38,7 @@ export default function AdminDashboard() {
   const [orderSort, setOrderSort] = useState("newest");
   const [openMenuId, setOpenMenuId] = useState(null); // ✅ NEW: Track open dropdown menu
 
-  const API = process.env.NEXT_PUBLIC_API_URL;
+  const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
   // ✅ Get token
   const getToken = () => {

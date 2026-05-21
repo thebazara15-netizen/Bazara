@@ -10,7 +10,7 @@ const formatINR = (value) => `INR ${Number(value || 0).toLocaleString("en-IN", {
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const API = process.env.NEXT_PUBLIC_API_URL;
+  const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
