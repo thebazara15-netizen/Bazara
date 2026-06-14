@@ -1,11 +1,12 @@
 require('dotenv').config();
 
 const app = require('./app');
-const sequelize = require('./config/database');
+const { createSequelize, createSqliteSequelize } = require('./config/database');
 const logger = require('./utils/logger');
 
 const PORT = process.env.PORT || 5000;
 let server;
+let sequelize = createSequelize();
 
 async function startServer() {
   try {
@@ -16,14 +17,37 @@ async function startServer() {
       nodeVersion: process.version
     });
 
-    await sequelize.authenticate();
-    logger.info('database_connected', { dialect: sequelize.getDialect() });
+    try {
+      console.log('🔍 Attempting to connect to database...');
+      await sequelize.authenticate();
+      console.log('✅ Database authenticated successfully');
+      logger.info('database_connected', { dialect: sequelize.getDialect() });
+    } catch (error) {
+      console.error('❌ Database connection error:', {
+        message: error.message,
+        code: error.code,
+        errno: error.errno,
+        syscall: error.syscall,
+        address: error.address,
+        port: error.port
+      });
+      logger.error('database_connection_failed', error);
+      if (process.env.NODE_ENV !== 'production') {
+        logger.warn('database_fallback_to_sqlite', { reason: error.message });
+        sequelize = createSqliteSequelize();
+        await sequelize.authenticate();
+        logger.info('database_connected', { dialect: sequelize.getDialect(), fallback: true });
+      } else {
+        throw error;
+      }
+    }
 
     await sequelize.sync({ alter: true });
     logger.info('database_tables_synced');
 
     server = app.listen(PORT, () => {
       logger.info('server_running', { port: PORT, pid: process.pid });
+      console.log(`\n✨ Server is running on http://localhost:${PORT}`);
     });
   } catch (error) {
     logger.error('server_start_failed', error);

@@ -1,3 +1,4 @@
+const { Op } = require('sequelize');
 const jwt = require('jsonwebtoken');
 const logger = require('../../../utils/logger');
 
@@ -62,16 +63,51 @@ exports.createProduct = async (req, res) => {
 // Get Products (all products for clients/public)
 exports.getProducts = async (req, res) => {
   try {
-    const products = await Product.findAll();
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.max(1, Math.min(100, parseInt(req.query.limit, 10) || 12));
+    const searchTerm = (req.query.search || '').trim().toLowerCase();
+
+    const where = {};
+    if (searchTerm) {
+      where[Op.or] = [
+        { name: { [Op.iLike]: `%${searchTerm}%` } },
+        { category: { [Op.iLike]: `%${searchTerm}%` } },
+        { description: { [Op.iLike]: `%${searchTerm}%` } }
+      ];
+    }
+
+    if (req.query.page || req.query.limit || searchTerm) {
+      const { count, rows } = await Product.findAndCountAll({
+        where,
+        limit,
+        offset: (page - 1) * limit,
+        order: [['createdAt', 'DESC']]
+      });
+
+      const updatedProducts = rows.map(p => ({
+        ...p.toJSON(),
+        finalPrice: getDisplayPrice(p),
+        images: Array.isArray(p.images) && p.images.length > 0
+          ? p.images.map(img => `${req.protocol}://${req.get('host')}/uploads/${img}`)
+          : [`${FRONTEND_URL}/industrial.jpg`]
+      }));
+
+      return res.json({
+        products: updatedProducts,
+        total: count,
+        page,
+        limit
+      });
+    }
+
+    const products = await Product.findAll({ order: [['createdAt', 'DESC']] });
 
     const updatedProducts = products.map(p => ({
       ...p.toJSON(),
-      // ✅ UPDATED: Show price to everyone (client pricing only)
       finalPrice: getDisplayPrice(p),
-      // ✅ UPDATED: Handle multiple images array
       images: Array.isArray(p.images) && p.images.length > 0
         ? p.images.map(img => `${req.protocol}://${req.get('host')}/uploads/${img}`)
-        : [`${FRONTEND_URL}/industrial.jpg`] // fallback image
+        : [`${FRONTEND_URL}/industrial.jpg`]
     }));
 
     res.json(updatedProducts);

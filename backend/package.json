@@ -4,7 +4,9 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon src/server.js",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "copy-db": "node scripts/copy-render-db.js",
+    "sync-db": "node scripts/copy-render-db.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -17,7 +19,8 @@
     "multer": "^2.1.1",
     "pg": "^8.20.0",
     "sequelize": "^6.37.8",
-    "sequelize-cli": "^6.6.5"
+    "sequelize-cli": "^6.6.5",
+    "sqlite3": "^6.0.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
