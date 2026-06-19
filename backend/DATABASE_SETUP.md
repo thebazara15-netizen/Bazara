@@ -100,7 +100,49 @@ You should see:
 
 ---
 
-## Option 3: Render Production Deployment
+## Option 3: Neon Production Deployment
+
+### Step 1: Create a Neon database
+
+1. Go to https://neon.tech and sign in or sign up.
+2. Create a new project and database.
+3. Choose a database name such as `myapp_db`.
+4. Find the connection details in the Neon console.
+   - Use the **External connection string** or **Postgres connection string**.
+   - Neon will provide a URL like:
+     `postgres://<user>:<password>@<host>:5432/<database>?sslmode=require`
+
+### Step 2: Configure the backend to use Neon
+
+1. In `backend/.env.local` set:
+   ```env
+   DB_USE_DATABASE_URL=true
+   DATABASE_URL=postgres://<user>:<password>@<host>:5432/<database>?sslmode=require
+   ```
+
+2. If you prefer explicit values instead of `DATABASE_URL`, set:
+   ```env
+   DB_NAME=<database>
+   DB_USER=<user>
+   DB_PASSWORD=<password>
+   DB_HOST=<host>
+   DB_PORT=5432
+   DB_SSL=true
+   DB_USE_DATABASE_URL=false
+   ```
+
+3. Start the backend from `backend/`:
+   ```bash
+   npm start
+   ```
+
+4. Confirm the backend logs show a Neon connection and no SQLite fallback.
+
+> Note: When running locally with a `DATABASE_URL`, keep `DB_USE_DATABASE_URL=true` because the repo may also have local `DB_HOST` values set.
+
+---
+
+## Option 4: Render Production Deployment
 
 ### Step 1: Create Postgres Database on Render
 

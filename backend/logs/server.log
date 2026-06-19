@@ -2,3 +2,47 @@
 {"timestamp":"2026-06-14T07:37:36.093Z","level":"INFO","message":"database_connected","meta":{"dialect":"postgres"}}
 {"timestamp":"2026-06-14T07:37:36.094Z","level":"INFO","message":"database_tables_synced"}
 {"timestamp":"2026-06-14T07:37:36.097Z","level":"INFO","message":"server_running","meta":{"port":"5000","pid":14104}}
+{"timestamp":"2026-06-18T13:21:47.594Z","level":"INFO","message":"server_boot_requested","meta":{"port":"5000","nodeEnv":"development","pid":12740,"nodeVersion":"v20.9.0"}}
+{"timestamp":"2026-06-18T13:21:47.773Z","level":"INFO","message":"database_connected","meta":{"dialect":"postgres"}}
+{"timestamp":"2026-06-18T13:21:47.774Z","level":"INFO","message":"database_tables_synced"}
+{"timestamp":"2026-06-18T13:21:47.779Z","level":"INFO","message":"server_running","meta":{"port":"5000","pid":12740}}
+{"timestamp":"2026-06-18T13:23:31.483Z","level":"INFO","message":"server_boot_requested","meta":{"port":"5000","nodeEnv":"development","pid":14880,"nodeVersion":"v20.9.0"}}
+{"timestamp":"2026-06-18T13:23:31.622Z","level":"INFO","message":"database_connected","meta":{"dialect":"postgres"}}
+{"timestamp":"2026-06-18T13:23:31.623Z","level":"INFO","message":"database_tables_synced"}
+{"timestamp":"2026-06-18T13:23:31.626Z","level":"INFO","message":"server_running","meta":{"port":"5000","pid":14880}}
+{"timestamp":"2026-06-18T13:23:59.785Z","level":"INFO","message":"server_boot_requested","meta":{"port":"5000","nodeEnv":"development","pid":24488,"nodeVersion":"v20.9.0"}}
+{"timestamp":"2026-06-18T13:23:59.928Z","level":"INFO","message":"database_connected","meta":{"dialect":"postgres"}}
+{"timestamp":"2026-06-18T13:23:59.929Z","level":"INFO","message":"database_tables_synced"}
+{"timestamp":"2026-06-18T13:23:59.932Z","level":"INFO","message":"server_running","meta":{"port":"5000","pid":24488}}
+{"timestamp":"2026-06-18T13:24:48.727Z","level":"INFO","message":"server_boot_requested","meta":{"port":"5000","nodeEnv":"development","pid":32312,"nodeVersion":"v20.9.0"}}
+{"timestamp":"2026-06-18T13:24:48.869Z","level":"INFO","message":"database_connected","meta":{"dialect":"postgres"}}
+{"timestamp":"2026-06-18T13:24:48.874Z","level":"INFO","message":"server_running","meta":{"port":"5000","pid":32312}}
+{"timestamp":"2026-06-18T13:24:48.871Z","level":"INFO","message":"database_tables_synced"}
+{"timestamp":"2026-06-18T13:27:56.480Z","level":"INFO","message":"server_boot_requested","meta":{"port":"5000","nodeEnv":"development","pid":26812,"nodeVersion":"v20.9.0"}}
+{"timestamp":"2026-06-18T13:27:56.590Z","level":"INFO","message":"database_connected","meta":{"dialect":"postgres"}}
+{"timestamp":"2026-06-18T13:27:56.591Z","level":"INFO","message":"database_tables_synced"}
+{"timestamp":"2026-06-18T13:27:56.594Z","level":"INFO","message":"server_running","meta":{"port":"5000","pid":26812}}
+{"timestamp":"2026-06-18T13:31:14.119Z","level":"INFO","message":"server_boot_requested","meta":{"port":"5000","nodeEnv":"development","pid":29740,"nodeVersion":"v20.9.0"}}
+{"timestamp":"2026-06-18T13:31:23.049Z","level":"INFO","message":"database_connected","meta":{"dialect":"postgres"}}
+{"timestamp":"2026-06-18T13:31:23.420Z","level":"INFO","message":"database_tables_synced"}
+{"timestamp":"2026-06-18T13:31:23.424Z","level":"INFO","message":"server_running","meta":{"port":"5000","pid":29740}}
+{"timestamp":"2026-06-18T13:31:43.464Z","level":"INFO","message":"server_boot_requested","meta":{"port":"5000","nodeEnv":"development","pid":30624,"nodeVersion":"v20.9.0"}}
+{"timestamp":"2026-06-18T13:31:51.297Z","level":"INFO","message":"database_connected","meta":{"dialect":"postgres"}}
+{"timestamp":"2026-06-18T13:31:51.668Z","level":"INFO","message":"database_tables_synced"}
+{"timestamp":"2026-06-18T13:31:51.672Z","level":"INFO","message":"server_running","meta":{"port":"5000","pid":30624}}
+{"timestamp":"2026-06-19T19:13:56.419Z","level":"INFO","message":"server_boot_requested","meta":{"port":"5000","nodeEnv":"development","pid":34272,"nodeVersion":"v20.9.0"}}
+{"timestamp":"2026-06-19T19:14:02.101Z","level":"INFO","message":"database_connected","meta":{"dialect":"postgres"}}
+{"timestamp":"2026-06-19T19:14:02.376Z","level":"INFO","message":"database_tables_synced"}
+{"timestamp":"2026-06-19T19:14:02.380Z","level":"INFO","message":"server_running","meta":{"port":"5000","pid":34272}}
+{"timestamp":"2026-06-19T19:28:37.926Z","level":"INFO","message":"server_boot_requested","meta":{"port":"5000","nodeEnv":"development","pid":5736,"nodeVersion":"v20.9.0"}}
+{"timestamp":"2026-06-19T19:28:44.713Z","level":"INFO","message":"database_connected","meta":{"dialect":"postgres"}}
+{"timestamp":"2026-06-19T19:28:44.998Z","level":"INFO","message":"server_running","meta":{"port":"5000","pid":5736}}
+{"timestamp":"2026-06-19T19:28:44.994Z","level":"INFO","message":"database_tables_synced"}
+{"timestamp":"2026-06-19T19:29:27.889Z","level":"INFO","message":"request_started","meta":{"requestId":"53ac8578-d031-4c1d-80e0-1ec930a65dde","method":"GET","url":"/api/auth/social-config","ip":"::1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36","referer":"http://localhost:3000/","params":{},"query":{}}}
+{"timestamp":"2026-06-19T19:29:27.899Z","level":"INFO","message":"request_finished","meta":{"requestId":"53ac8578-d031-4c1d-80e0-1ec930a65dde","method":"GET","url":"/api/auth/social-config","ip":"::1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36","referer":"http://localhost:3000/","params":{},"query":{},"statusCode":200,"durationMs":10.96,"contentLength":"50"}}
+{"timestamp":"2026-06-19T19:29:27.902Z","level":"INFO","message":"request_started","meta":{"requestId":"aae1231d-5906-4b58-a596-74b76fa4df9c","method":"GET","url":"/api/products","ip":"::1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36","referer":"http://localhost:3000/","params":{},"query":{}}}
+{"timestamp":"2026-06-19T19:29:34.273Z","level":"INFO","message":"request_finished","meta":{"requestId":"aae1231d-5906-4b58-a596-74b76fa4df9c","method":"GET","url":"/api/products","ip":"::1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36","referer":"http://localhost:3000/","params":{},"query":{},"statusCode":200,"durationMs":6370.78,"contentLength":"2"}}
+{"timestamp":"2026-06-19T19:35:27.522Z","level":"INFO","message":"request_started","meta":{"requestId":"28f3878f-70ba-4b29-94bf-ef2895b839be","method":"GET","url":"/api/auth/social-config","ip":"::1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36","referer":"http://localhost:3000/","params":{},"query":{}}}
+{"timestamp":"2026-06-19T19:35:27.531Z","level":"INFO","message":"request_finished","meta":{"requestId":"28f3878f-70ba-4b29-94bf-ef2895b839be","method":"GET","url":"/api/auth/social-config","ip":"::1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36","referer":"http://localhost:3000/","params":{},"query":{},"statusCode":304,"durationMs":9.75}}
+{"timestamp":"2026-06-19T19:35:27.533Z","level":"INFO","message":"request_started","meta":{"requestId":"8c3c90b9-b195-4d3a-9d89-ffb72ce33a90","method":"GET","url":"/api/products?page=1&limit=12","ip":"::1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36","referer":"http://localhost:3000/","params":{},"query":{"page":"1","limit":"12"}}}
+{"timestamp":"2026-06-19T19:35:30.923Z","level":"INFO","message":"request_finished","meta":{"requestId":"8c3c90b9-b195-4d3a-9d89-ffb72ce33a90","method":"GET","url":"/api/products?page=1&limit=12","ip":"::1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36","referer":"http://localhost:3000/","params":{},"query":{"page":"1","limit":"12"},"statusCode":200,"durationMs":3389.61,"contentLength":"45"}}

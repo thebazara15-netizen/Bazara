@@ -1,7 +1,8 @@
 require('dotenv').config();
+require('dotenv').config({ path: '.env.local', override: true });
 
 const app = require('./app');
-const { createSequelize, createSqliteSequelize } = require('./config/database');
+const { createSequelize } = require('./config/database');
 const logger = require('./utils/logger');
 
 const PORT = process.env.PORT || 5000;
@@ -32,14 +33,7 @@ async function startServer() {
         port: error.port
       });
       logger.error('database_connection_failed', error);
-      if (process.env.NODE_ENV !== 'production') {
-        logger.warn('database_fallback_to_sqlite', { reason: error.message });
-        sequelize = createSqliteSequelize();
-        await sequelize.authenticate();
-        logger.info('database_connected', { dialect: sequelize.getDialect(), fallback: true });
-      } else {
-        throw error;
-      }
+      throw error;
     }
 
     await sequelize.sync({ alter: true });
