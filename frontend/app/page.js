@@ -135,31 +135,31 @@ function HomeContent() {
   }, [API, page, searchQuery]);
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-900">
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <section className="rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm shadow-slate-200/40 lg:p-12">
+    <main className="min-h-screen bg-gray-100 text-gray-900">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm lg:p-8">
           <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
             <div>
-              <p className="inline-flex rounded-full bg-blue-50 px-4 py-1 text-sm font-semibold uppercase tracking-[0.24em] text-blue-700">
+              <p className="inline-flex rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
                 Industrial sourcing
               </p>
-              <h1 className="mt-6 text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
+              <h1 className="mt-5 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
                 Buy bulk industrial supplies from trusted vendors.
               </h1>
-              <p className="mt-6 max-w-2xl text-base leading-8 text-slate-600 sm:text-lg">
+              <p className="mt-4 max-w-2xl text-sm leading-7 text-gray-600 sm:text-base">
                 Discover verified products, compare MOQ pricing, and manage large orders with a modern B2B marketplace built for industrial buyers and suppliers.
               </p>
 
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <button
-                  onClick={() => router.push("/product")}
-                  className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-6 py-3 text-base font-semibold text-white shadow-lg shadow-blue-500/20 transition hover:bg-blue-700"
+                  onClick={() => router.push("/#featured-products")}
+                  className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700"
                 >
                   Browse Products
                 </button>
                 <button
                   onClick={() => router.push("/rfq")}
-                  className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-6 py-3 text-base font-semibold text-slate-900 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
+                  className="inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
                 >
                   Request a Quote
                 </button>
@@ -167,36 +167,36 @@ function HomeContent() {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5 shadow-sm">
-                <p className="text-sm font-semibold text-slate-500">Trusted vendors</p>
-                <p className="mt-4 text-3xl font-bold text-slate-900">120+</p>
-                <p className="mt-2 text-sm leading-6 text-slate-600">Vetted suppliers across manufacturing, parts, and materials.</p>
+              <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 shadow-sm">
+                <p className="text-sm font-semibold text-gray-500">Trusted vendors</p>
+                <p className="mt-3 text-2xl font-bold text-gray-900">120+</p>
+                <p className="mt-2 text-sm leading-6 text-gray-600">Vetted suppliers across manufacturing, parts, and materials.</p>
               </div>
-              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5 shadow-sm">
-                <p className="text-sm font-semibold text-slate-500">Bulk pricing</p>
-                <p className="mt-4 text-3xl font-bold text-slate-900">MOQ-ready</p>
-                <p className="mt-2 text-sm leading-6 text-slate-600">Instant pricing for minimum order quantity and volume tiers.</p>
+              <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 shadow-sm">
+                <p className="text-sm font-semibold text-gray-500">Bulk pricing</p>
+                <p className="mt-3 text-2xl font-bold text-gray-900">MOQ-ready</p>
+                <p className="mt-2 text-sm leading-6 text-gray-600">Instant pricing for minimum order quantity and volume tiers.</p>
               </div>
             </div>
           </div>
         </section>
 
         <section className="mt-10">
-          <div className="flex flex-col gap-4 rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+          <div id="featured-products" className="flex flex-col gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Featured products</p>
-              <p className="mt-2 text-2xl font-semibold text-slate-900">Bulk-ready industrial supplies</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Featured products</p>
+              <p className="mt-1 text-xl font-semibold text-gray-900">Bulk-ready industrial supplies</p>
             </div>
-            <div className="rounded-3xl bg-slate-50 px-4 py-3 text-sm text-slate-600 shadow-sm">
+            <div className="rounded-full bg-gray-50 px-4 py-2 text-sm text-gray-600 shadow-sm">
               {totalProducts} product{totalProducts === 1 ? "" : "s"} available
             </div>
           </div>
 
-          <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {loading && products.length === 0 ? (
               Array.from({ length: 6 }).map((_, idx) => (
-                <div key={idx} className="overflow-hidden rounded-3xl border border-slate-200 bg-white p-5 shadow-sm animate-pulse">
-                  <div className="h-48 rounded-3xl bg-slate-200" />
+                <div key={idx} className="overflow-hidden rounded-lg border border-gray-200 bg-white p-3 shadow-sm animate-pulse">
+                  <div className="h-36 rounded-lg bg-gray-200" />
                   <div className="mt-5 space-y-4">
                     <div className="h-5 w-3/4 rounded-full bg-slate-200" />
                     <div className="h-4 w-1/2 rounded-full bg-slate-200" />
@@ -208,9 +208,9 @@ function HomeContent() {
                 </div>
               ))
             ) : products.length === 0 ? (
-              <div className="col-span-full rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm">
-                <p className="text-lg font-semibold text-slate-900">No products match your search.</p>
-                <p className="mt-3 text-sm leading-6 text-slate-600">Try a broader keyword, or explore products from another category.</p>
+              <div className="col-span-full rounded-lg border border-gray-200 bg-white p-12 text-center shadow-sm">
+                <p className="text-lg font-semibold text-gray-900">No products match your search.</p>
+                <p className="mt-3 text-sm leading-6 text-gray-600">Try a broader keyword, or explore products from another category.</p>
               </div>
             ) : (
               products.map((product) => {
@@ -232,13 +232,13 @@ function HomeContent() {
                 return (
                   <div
                     key={product.id}
-                    className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+                    className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition hover:border-blue-200 hover:shadow-md"
                   >
-                    <div className="relative h-56 overflow-hidden bg-slate-100">
+                    <div className="relative h-36 overflow-hidden bg-gray-100">
                       <img
                         src={currentImage}
                         alt={product.name}
-                        className="h-full w-full object-cover transition duration-300"
+                        className="h-full w-full object-contain p-2 transition duration-300"
                       />
                       {images.length > 1 && (
                         <div className="absolute inset-x-0 bottom-4 flex justify-center gap-2">
@@ -256,42 +256,42 @@ function HomeContent() {
                       )}
                     </div>
 
-                    <div className="space-y-4 p-5">
-                      <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                    <div className="space-y-3 p-3">
+                      <div className="flex flex-wrap items-center justify-between gap-3 text-[11px] font-semibold text-gray-500">
                         <span>{product.category || "Industrial"}</span>
                         <span>{product.stock ? `${product.stock} in stock` : "Stock clear"}</span>
                       </div>
                       <div>
-                        <h3 className="text-xl font-semibold text-slate-900 line-clamp-2">{product.name}</h3>
-                        <p className="mt-3 text-sm leading-6 text-slate-600 line-clamp-2">
+                        <h3 className="text-sm font-semibold text-gray-900 line-clamp-2">{product.name}</h3>
+                        <p className="mt-2 text-xs leading-5 text-gray-600 line-clamp-2">
                           {product.description || product.category || "Premium industrial supplies for B2B bulk orders."}
                         </p>
                       </div>
                       <div className="grid gap-3 sm:grid-cols-2">
-                        <div className="rounded-3xl bg-slate-50 p-4">
-                          <p className="text-xs uppercase tracking-[0.24em] text-slate-500">MOQ</p>
-                          <p className="mt-2 text-lg font-semibold text-slate-900">{product.moq || 1}</p>
+                        <div className="rounded-lg bg-gray-50 p-3">
+                          <p className="text-[11px] text-gray-500">MOQ</p>
+                          <p className="mt-1 text-sm font-semibold text-gray-900">{product.moq || 1}</p>
                         </div>
-                        <div className="rounded-3xl bg-slate-50 p-4">
-                          <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Price</p>
-                          <p className="mt-2 text-lg font-semibold text-blue-600">{formatPrice(product.finalPrice)}</p>
+                        <div className="rounded-lg bg-gray-50 p-3">
+                          <p className="text-[11px] text-gray-500">Price</p>
+                          <p className="mt-1 text-sm font-semibold text-blue-600">{formatPrice(product.finalPrice)}</p>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex flex-col gap-3 border-t border-slate-200 bg-slate-50 p-5">
+                    <div className="flex flex-col gap-2 border-t border-gray-200 bg-gray-50 p-3">
                       {viewerRole === "CLIENT" ? (
                         cartProducts.has(product.id) ? (
                           <button
                             onClick={() => router.push("/cart")}
-                            className="inline-flex items-center justify-center rounded-2xl bg-green-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-green-700"
+                            className="inline-flex items-center justify-center rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700"
                           >
                             Go to Cart
                           </button>
                         ) : (
                           <button
                             onClick={() => addToCart(product)}
-                            className="inline-flex items-center justify-center rounded-2xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
+                            className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
                           >
                             Add to Cart
                           </button>
@@ -299,7 +299,7 @@ function HomeContent() {
                       ) : (
                         <button
                           onClick={() => router.push("/login")}
-                          className="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100"
+                          className="inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
                         >
                           Login to Order
                         </button>
@@ -317,15 +317,15 @@ function HomeContent() {
                 <button
                   onClick={() => setPage((current) => Math.max(1, current - 1))}
                   disabled={page === 1}
-                  className={`rounded-full px-5 py-2 text-sm font-semibold transition ${page === 1 ? "bg-slate-100 text-slate-400" : "bg-blue-600 text-white hover:bg-blue-700"}`}
+                  className={`rounded-full px-5 py-2 text-sm font-semibold transition ${page === 1 ? "bg-gray-100 text-gray-500" : "bg-blue-600 text-white hover:bg-blue-700"}`}
                 >
                   Previous
                 </button>
-                <span className="text-sm text-slate-600">Page {page} of {Math.ceil(totalProducts / limit)}</span>
+                <span className="text-sm text-gray-600">Page {page} of {Math.ceil(totalProducts / limit)}</span>
                 <button
                   onClick={() => setPage((current) => Math.min(Math.ceil(totalProducts / limit), current + 1))}
                   disabled={page === Math.ceil(totalProducts / limit)}
-                  className={`rounded-full px-5 py-2 text-sm font-semibold transition ${page === Math.ceil(totalProducts / limit) ? "bg-slate-100 text-slate-400" : "bg-blue-600 text-white hover:bg-blue-700"}`}
+                  className={`rounded-full px-5 py-2 text-sm font-semibold transition ${page === Math.ceil(totalProducts / limit) ? "bg-gray-100 text-gray-500" : "bg-blue-600 text-white hover:bg-blue-700"}`}
                 >
                   Next
                 </button>
@@ -354,7 +354,7 @@ function HomeContent() {
 
 export default function Home() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gray-900" />}>
+    <Suspense fallback={<div className="min-h-screen bg-gray-100" />}>
       <HomeContent />
     </Suspense>
   );

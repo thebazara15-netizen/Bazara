@@ -95,8 +95,8 @@ function NavIconButton({ children, label, onClick, active }) {
       type="button"
       onClick={onClick}
       aria-label={label}
-      className={`relative flex h-11 min-w-11 items-center justify-center rounded-full px-3 text-slate-200 transition hover:bg-white/10 hover:text-white ${
-        active ? "bg-white/10 text-orange-300" : ""
+      className={`relative flex h-10 min-w-10 items-center justify-center rounded-lg border border-gray-200 bg-white px-3 text-gray-700 transition hover:bg-gray-50 hover:text-blue-600 ${
+        active ? "border-blue-200 bg-blue-50 text-blue-600" : ""
       }`}
     >
       {children}
@@ -210,19 +210,19 @@ export default function Navbar() {
   const isVendorPage = pathname === "/vendor";
 
   return (
-    <nav className="sticky top-0 z-40 border-b border-white/10 bg-[#070b10]/95 text-white shadow-[0_18px_55px_rgba(0,0,0,0.35)] backdrop-blur-xl">
-      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 md:flex-nowrap md:px-6">
+    <nav className="sticky top-0 z-40 border-b border-gray-200 bg-white text-gray-900 shadow-sm">
+      <div className="mx-auto flex min-h-14 max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-2 md:flex-nowrap md:px-6">
         <Link href="/" className="flex items-center gap-3 transition hover:opacity-90">
-          <span className="flex h-12 w-12 items-center justify-center rounded-lg border border-orange-400/30 bg-gradient-to-br from-orange-600 to-red-700 shadow-lg shadow-orange-950/30">
+          <span className="flex h-10 w-10 items-center justify-center rounded-lg border border-blue-100 bg-blue-50">
             <img
               src="/bazara-logo.jpeg"
               alt="Bazara Logo"
-              className="h-9 w-9 object-contain mix-blend-screen"
+              className="h-8 w-8 object-contain"
             />
           </span>
           <div className="hidden sm:block">
-            <h1 className="text-lg font-bold leading-5 text-white">Bazara</h1>
-            <p className="text-xs font-medium text-slate-400">Industrial B2B</p>
+            <h1 className="text-lg font-bold leading-5 text-blue-600">Bazara</h1>
+            <p className="text-xs font-medium text-gray-500">Industrial B2B</p>
           </div>
         </Link>
 
@@ -230,18 +230,18 @@ export default function Navbar() {
           onSubmit={handleSearch}
           className="order-3 w-full md:order-2 md:mx-6 md:max-w-2xl md:flex-1"
         >
-          <div className="flex h-12 overflow-hidden rounded-full border border-white/10 bg-white/[0.08] shadow-inner shadow-black/20 focus-within:border-orange-400/70 focus-within:ring-2 focus-within:ring-orange-500/20">
+          <div className="flex h-10 overflow-hidden rounded-full border border-gray-200 bg-white shadow-sm focus-within:border-blue-600 focus-within:ring-2 focus-within:ring-blue-100">
             <input
               type="search"
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
               placeholder="Search products or category"
-              className="min-w-0 flex-1 bg-transparent px-5 text-sm text-white outline-none placeholder:text-slate-400"
+              className="min-w-0 flex-1 bg-transparent px-5 text-sm text-gray-900 outline-none placeholder:text-gray-400"
             />
             <button
               type="submit"
               aria-label="Search products"
-              className="flex w-16 items-center justify-center bg-gradient-to-r from-orange-600 to-red-600 text-white transition hover:from-orange-500 hover:to-red-500"
+              className="flex w-14 items-center justify-center bg-blue-600 text-white transition hover:bg-blue-700"
             >
               <Icon name="search" className="h-5 w-5" />
             </button>
@@ -252,13 +252,13 @@ export default function Navbar() {
           <div className="hidden items-center gap-1 lg:flex">
             <Link
               href="/suppliers"
-              className="rounded-full px-3 py-2 text-sm font-semibold text-slate-200 transition hover:bg-white/10 hover:text-white"
+              className="rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 hover:text-blue-600"
             >
               Suppliers
             </Link>
             <Link
               href="/rfq"
-              className="rounded-full px-3 py-2 text-sm font-semibold text-slate-200 transition hover:bg-white/10 hover:text-white"
+              className="rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 hover:text-blue-600"
             >
               RFQ
             </Link>
@@ -277,7 +277,7 @@ export default function Navbar() {
           {user?.role === "ADMIN" && !isAdminPage && (
             <Link
               href="/admin"
-              className="hidden rounded-full px-3 py-2 text-sm font-semibold text-slate-200 transition hover:bg-white/10 hover:text-white sm:block"
+              className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 hover:text-blue-600 sm:block"
             >
               Dashboard
             </Link>
@@ -287,7 +287,7 @@ export default function Navbar() {
             <button
               type="button"
               onClick={() => router.push("/")}
-              className="hidden rounded-full px-3 py-2 text-sm font-semibold text-slate-200 transition hover:bg-white/10 hover:text-white sm:block"
+              className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 hover:text-blue-600 sm:block"
             >
               Home
             </button>
@@ -296,7 +296,7 @@ export default function Navbar() {
           {user?.role === "VENDOR" && !isVendorPage && (
             <Link
               href="/vendor"
-              className="hidden rounded-full px-3 py-2 text-sm font-semibold text-slate-200 transition hover:bg-white/10 hover:text-white sm:block"
+              className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 hover:text-blue-600 sm:block"
             >
               My Store
             </Link>
@@ -306,17 +306,17 @@ export default function Navbar() {
             <button
               type="button"
               onClick={() => router.push("/")}
-              className="hidden rounded-full px-3 py-2 text-sm font-semibold text-slate-200 transition hover:bg-white/10 hover:text-white sm:block"
+              className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 hover:text-blue-600 sm:block"
             >
               Home
             </button>
           )}
 
           <Link href="/cart" aria-label="Cart">
-            <span className="relative flex h-11 min-w-11 items-center justify-center rounded-full px-3 text-slate-200 transition hover:bg-white/10 hover:text-white">
+            <span className="relative flex h-10 min-w-10 items-center justify-center rounded-lg border border-gray-200 bg-white px-3 text-gray-700 transition hover:bg-gray-50 hover:text-blue-600">
               <Icon name="cart" />
               {cartCount > 0 && (
-                <span className="absolute right-0 top-0 flex h-5 min-w-5 items-center justify-center rounded-full bg-orange-500 px-1 text-xs font-bold text-white ring-2 ring-[#070b10]">
+                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-600 px-1 text-xs font-bold text-white ring-2 ring-white">
                   {cartCount > 99 ? "99+" : cartCount}
                 </span>
               )}
@@ -344,7 +344,7 @@ export default function Navbar() {
                     <Link
                       href="/login"
                       onClick={() => setShowProfileDropdown(false)}
-                      className="mt-4 block rounded-full bg-gradient-to-r from-orange-600 to-red-600 px-5 py-2.5 text-center text-sm font-extrabold text-white shadow-lg shadow-orange-600/20 transition hover:from-orange-500 hover:to-red-500"
+                      className="mt-4 block rounded-lg bg-blue-600 px-5 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-blue-700"
                     >
                       Sign in
                     </Link>
@@ -396,7 +396,7 @@ export default function Navbar() {
                           key={item.label}
                           href={item.href}
                           onClick={() => setShowProfileDropdown(false)}
-                          className="block py-2 text-sm font-medium text-gray-700 transition hover:text-orange-600"
+                          className="block py-2 text-sm font-medium text-gray-700 transition hover:text-blue-600"
                         >
                           {item.label}
                         </Link>
@@ -406,7 +406,7 @@ export default function Navbar() {
                     <Link
                       href="/register"
                       onClick={() => setShowProfileDropdown(false)}
-                      className="mt-2 block rounded-lg bg-gray-50 px-3 py-2 text-sm font-bold text-gray-800 transition hover:bg-orange-50 hover:text-orange-600"
+                      className="mt-2 block rounded-lg bg-gray-50 px-3 py-2 text-sm font-bold text-gray-800 transition hover:bg-blue-50 hover:text-blue-600"
                     >
                       Membership program
                     </Link>
@@ -420,7 +420,7 @@ export default function Navbar() {
                           key={item.label}
                           href={item.href}
                           onClick={() => setShowProfileDropdown(false)}
-                          className="block py-2 text-sm font-medium text-gray-700 transition hover:text-orange-600"
+                          className="block py-2 text-sm font-medium text-gray-700 transition hover:text-blue-600"
                         >
                           {item.label}
                         </Link>
