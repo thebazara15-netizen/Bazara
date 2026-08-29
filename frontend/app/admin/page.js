@@ -424,62 +424,62 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 via-gray-100 to-gray-100 text-gray-900">
       <div className="flex flex-col md:flex-row">
         <Sidebar />
 
         <div className="flex-1 p-4 md:p-8">
           {/* Header */}
           <div className="mb-8 md:mb-12">
-            <h1 className="text-3xl md:text-5xl font-bold bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">
+            <h1 className="text-3xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent">
               Admin Dashboard
             </h1>
-            <p className="text-gray-400 mt-1 md:mt-2 text-sm md:text-base">Manage your marketplace with precision</p>
+            <p className="text-gray-500 mt-1 md:mt-2 text-sm md:text-base">Manage your marketplace with precision</p>
           </div>
 
           {/* Stats Grid */}
           <div className="mb-8 md:mb-12 grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
-            <div className="group relative bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-md p-3 md:p-6 rounded-xl border border-gray-700 hover:border-orange-500 transition-all duration-300 hover:shadow-xl hover:shadow-orange-500/10 hover:-translate-y-1">
-              <div className="absolute inset-0 bg-gradient-to-br from-orange-500/0 to-red-500/0 group-hover:from-orange-500/5 group-hover:to-red-500/5 rounded-xl transition-all duration-300"></div>
+            <div className="group relative bg-gradient-to-br from-white to-white p-3 md:p-6 rounded-xl border border-gray-200 hover:border-blue-600 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10 ">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 to-blue-600/0 group-hover:from-blue-500/5 group-hover:to-blue-600/5 rounded-xl transition-all duration-300"></div>
               <div className="relative">
                 <div className="text-xl md:text-3xl mb-1 md:mb-3">👥</div>
-                <h2 className="text-gray-300 text-xs md:text-sm font-medium">Total Users</h2>
+                <h2 className="text-gray-600 text-xs md:text-sm font-medium">Total Users</h2>
                 <p className="text-2xl md:text-4xl font-bold mt-1 md:mt-2">{users.length}</p>
               </div>
             </div>
 
-            <div className="group relative bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-md p-3 md:p-6 rounded-xl border border-gray-700 hover:border-blue-500 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-1">
+            <div className="group relative bg-gradient-to-br from-white to-white p-3 md:p-6 rounded-xl border border-gray-200 hover:border-blue-500 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10 ">
               <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 to-cyan-500/0 group-hover:from-blue-500/5 group-hover:to-cyan-500/5 rounded-xl transition-all duration-300"></div>
               <div className="relative">
                 <div className="text-xl md:text-3xl mb-1 md:mb-3">📦</div>
-                <h2 className="text-gray-300 text-xs md:text-sm font-medium">Total Orders</h2>
+                <h2 className="text-gray-600 text-xs md:text-sm font-medium">Total Orders</h2>
                 <p className="text-2xl md:text-4xl font-bold mt-1 md:mt-2">{orders.length}</p>
               </div>
             </div>
 
-            <div className="group relative bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-md p-3 md:p-6 rounded-xl border border-gray-700 hover:border-purple-500 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/10 hover:-translate-y-1">
+            <div className="group relative bg-gradient-to-br from-white to-white p-3 md:p-6 rounded-xl border border-gray-200 hover:border-purple-500 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/10 ">
               <div className="absolute inset-0 bg-gradient-to-br from-purple-500/0 to-pink-500/0 group-hover:from-purple-500/5 group-hover:to-pink-500/5 rounded-xl transition-all duration-300"></div>
               <div className="relative">
                 <div className="text-xl md:text-3xl mb-1 md:mb-3">🏪</div>
-                <h2 className="text-gray-300 text-xs md:text-sm font-medium">Vendors</h2>
+                <h2 className="text-gray-600 text-xs md:text-sm font-medium">Vendors</h2>
                 <p className="text-2xl md:text-4xl font-bold mt-1 md:mt-2">
                   {users.filter((user) => user.role === "VENDOR").length}
                 </p>
               </div>
             </div>
 
-            <div className="group relative bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-md p-3 md:p-6 rounded-xl border border-gray-700 hover:border-green-500 transition-all duration-300 hover:shadow-xl hover:shadow-green-500/10 hover:-translate-y-1">
+            <div className="group relative bg-gradient-to-br from-white to-white p-3 md:p-6 rounded-xl border border-gray-200 hover:border-green-500 transition-all duration-300 hover:shadow-xl hover:shadow-green-500/10 ">
               <div className="absolute inset-0 bg-gradient-to-br from-green-500/0 to-emerald-500/0 group-hover:from-green-500/5 group-hover:to-emerald-500/5 rounded-xl transition-all duration-300"></div>
               <div className="relative">
                 <div className="text-xl md:text-3xl mb-1 md:mb-3">📊</div>
-                <h2 className="text-gray-300 text-xs md:text-sm font-medium">Products</h2>
+                <h2 className="text-gray-600 text-xs md:text-sm font-medium">Products</h2>
                 <p className="text-2xl md:text-4xl font-bold mt-1 md:mt-2">{products.length}</p>
               </div>
             </div>
           </div>
 
           {/* Users Section */}
-          <div className="mb-8 md:mb-12 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-md rounded-xl border border-gray-700 p-4 md:p-8 hover:border-gray-600 transition-all duration-300">
+          <div className="mb-8 md:mb-12 bg-gradient-to-br from-white to-white rounded-xl border border-gray-200 p-4 md:p-8 hover:border-gray-200 transition-all duration-300">
             <div className="flex items-center gap-3 mb-4 md:mb-6">
               <div className="text-2xl md:text-3xl">👥</div>
               <h2 className="text-lg md:text-2xl font-bold">Users Management</h2>
@@ -492,12 +492,12 @@ export default function AdminDashboard() {
                   value={userSearch}
                   onChange={(e) => setUserSearch(e.target.value)}
                   placeholder="Search users"
-                  className="w-full bg-gray-900/70 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-500"
+                  className="w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-600"
                 />
                 <select
                   value={userFilter}
                   onChange={(e) => setUserFilter(e.target.value)}
-                  className="w-full bg-gray-900/70 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-500"
+                  className="w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-600"
                 >
                   <option value="all">Filter: All users</option>
                   <option value="ADMIN">Admins</option>
@@ -509,7 +509,7 @@ export default function AdminDashboard() {
                 <select
                   value={userSort}
                   onChange={(e) => setUserSort(e.target.value)}
-                  className="w-full bg-gray-900/70 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-500"
+                  className="w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-600"
                 >
                   <option value="newest">Sort: Newest date</option>
                   <option value="oldest">Oldest date</option>
@@ -520,19 +520,19 @@ export default function AdminDashboard() {
             )}
 
             {users.length === 0 ? (
-              <p className="text-gray-400 text-center py-6 md:py-8 text-sm md:text-base">No users found</p>
+              <p className="text-gray-500 text-center py-6 md:py-8 text-sm md:text-base">No users found</p>
             ) : visibleUsers.length === 0 ? (
-              <p className="text-gray-400 text-center py-6 md:py-8 text-sm md:text-base">No users match your search or filters</p>
+              <p className="text-gray-500 text-center py-6 md:py-8 text-sm md:text-base">No users match your search or filters</p>
             ) : (
               <div className="space-y-2 max-h-96 overflow-y-auto">
                 {visibleUsers.map((user) => (
                   <div
                     key={user.id}
-                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-gray-900/50 p-3 md:p-4 rounded-lg border border-gray-700 hover:border-gray-600 hover:bg-gray-800/50 transition-all duration-200 gap-3 sm:gap-0"
+                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-gray-50 p-3 md:p-4 rounded-lg border border-gray-200 hover:border-gray-200 hover:bg-white transition-all duration-200 gap-3 sm:gap-0"
                   >
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-white text-sm md:text-base truncate">{user.email}</p>
-                      <p className="text-xs md:text-sm text-gray-400">
+                      <p className="font-medium text-gray-900 text-sm md:text-base truncate">{user.email}</p>
+                      <p className="text-xs md:text-sm text-gray-500">
                         <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${
                           user.role === "ADMIN" ? "bg-red-500/20 text-red-300" :
                           user.role === "VENDOR" ? "bg-purple-500/20 text-purple-300" :
@@ -563,7 +563,7 @@ export default function AdminDashboard() {
           </div>
 
           {/* Product Management Section */}
-          <div className="mb-8 md:mb-12 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-md rounded-xl border border-gray-700 p-4 md:p-8 hover:border-gray-600 transition-all duration-300">
+          <div className="mb-8 md:mb-12 bg-gradient-to-br from-white to-white rounded-xl border border-gray-200 p-4 md:p-8 hover:border-gray-200 transition-all duration-300">
             <div className="flex items-center gap-3 mb-4 md:mb-6">
               <div className="text-2xl md:text-3xl">⚙️</div>
               <h2 className="text-lg md:text-2xl font-bold">Product Management</h2>
@@ -576,12 +576,12 @@ export default function AdminDashboard() {
                   value={productSearch}
                   onChange={(e) => setProductSearch(e.target.value)}
                   placeholder="Search products"
-                  className="w-full bg-gray-900/70 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-500"
+                  className="w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-600"
                 />
                 <select
                   value={productFilter}
                   onChange={(e) => setProductFilter(e.target.value)}
-                  className="w-full bg-gray-900/70 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-500"
+                  className="w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-600"
                 >
                   <option value="all">Filter: All categories</option>
                   {productCategories.map((category) => (
@@ -593,7 +593,7 @@ export default function AdminDashboard() {
                 <select
                   value={productSort}
                   onChange={(e) => setProductSort(e.target.value)}
-                  className="w-full bg-gray-900/70 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-500"
+                  className="w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-600"
                 >
                   <option value="newest">Sort: Newest date</option>
                   <option value="oldest">Oldest date</option>
@@ -606,13 +606,13 @@ export default function AdminDashboard() {
             )}
 
             {products.length === 0 ? (
-              <p className="text-gray-400 text-center py-6 md:py-8 text-sm md:text-base">No products found</p>
+              <p className="text-gray-500 text-center py-6 md:py-8 text-sm md:text-base">No products found</p>
             ) : visibleProducts.length === 0 ? (
-              <p className="text-gray-400 text-center py-6 md:py-8 text-sm md:text-base">No products match your search or filters</p>
+              <p className="text-gray-500 text-center py-6 md:py-8 text-sm md:text-base">No products match your search or filters</p>
             ) : (
               <div className="space-y-3 md:space-y-4 max-h-[600px] overflow-y-auto">
                 {visibleProducts.map((product) => (
-                  <div key={product.id} className="bg-gray-900/50 p-3 md:p-4 rounded-lg border border-gray-700 hover:border-gray-600 hover:bg-gray-800/50 transition-all duration-200">
+                  <div key={product.id} className="bg-gray-50 p-3 md:p-4 rounded-lg border border-gray-200 hover:border-gray-200 hover:bg-white transition-all duration-200">
                     {editingProductId === product.id ? (
                       // ✅ EDIT MODE
                       <div className="space-y-3">
@@ -621,13 +621,13 @@ export default function AdminDashboard() {
                           value={editForm.name}
                           onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
                           placeholder="Product Name"
-                          className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2 focus:outline-none focus:border-orange-500 text-sm"
+                          className="w-full bg-gray-100 border border-gray-200 text-gray-900 rounded-lg p-2 focus:outline-none focus:border-blue-600 text-sm"
                         />
                         <textarea
                           value={editForm.description}
                           onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                           placeholder="Description"
-                          className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2 focus:outline-none focus:border-orange-500 text-sm h-16"
+                          className="w-full bg-gray-100 border border-gray-200 text-gray-900 rounded-lg p-2 focus:outline-none focus:border-blue-600 text-sm h-16"
                         />
                         <div className="grid grid-cols-2 gap-2">
                           <input
@@ -635,14 +635,14 @@ export default function AdminDashboard() {
                             value={editForm.category}
                             onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
                             placeholder="Category"
-                            className="bg-gray-700 border border-gray-600 text-white rounded-lg p-2 focus:outline-none focus:border-orange-500 text-sm"
+                            className="bg-gray-100 border border-gray-200 text-gray-900 rounded-lg p-2 focus:outline-none focus:border-blue-600 text-sm"
                           />
                           <input
                             type="number"
                             value={editForm.moq}
                             onChange={(e) => setEditForm({ ...editForm, moq: e.target.value })}
                             placeholder="MOQ"
-                            className="bg-gray-700 border border-gray-600 text-white rounded-lg p-2 focus:outline-none focus:border-orange-500 text-sm"
+                            className="bg-gray-100 border border-gray-200 text-gray-900 rounded-lg p-2 focus:outline-none focus:border-blue-600 text-sm"
                           />
                         </div>
                         <div className="grid grid-cols-2 gap-2">
@@ -651,14 +651,14 @@ export default function AdminDashboard() {
                             value={editForm.stock}
                             onChange={(e) => setEditForm({ ...editForm, stock: e.target.value })}
                             placeholder="Stock"
-                            className="bg-gray-700 border border-gray-600 text-white rounded-lg p-2 focus:outline-none focus:border-orange-500 text-sm"
+                            className="bg-gray-100 border border-gray-200 text-gray-900 rounded-lg p-2 focus:outline-none focus:border-blue-600 text-sm"
                           />
                           <input
                             type="number"
                             value={editForm.basePrice}
                             onChange={(e) => setEditForm({ ...editForm, basePrice: e.target.value })}
                             placeholder="Base Price"
-                            className="bg-gray-700 border border-gray-600 text-white rounded-lg p-2 focus:outline-none focus:border-orange-500 text-sm"
+                            className="bg-gray-100 border border-gray-200 text-gray-900 rounded-lg p-2 focus:outline-none focus:border-blue-600 text-sm"
                           />
                         </div>
                         <div className="flex gap-2">
@@ -671,7 +671,7 @@ export default function AdminDashboard() {
                           </button>
                           <button
                             onClick={() => setEditingProductId(null)}
-                            className="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-lg font-medium text-xs md:text-sm transition"
+                            className="flex-1 bg-gray-100 hover:bg-gray-600 text-gray-900 px-3 py-2 rounded-lg font-medium text-xs md:text-sm transition"
                           >
                             ❌ Cancel
                           </button>
@@ -684,25 +684,25 @@ export default function AdminDashboard() {
                           {/* 3-Dot Menu Button - Top Right Corner */}
                           <button
                             onClick={() => setOpenMenuId(openMenuId === product.id ? null : product.id)}
-                            className="absolute top-0 right-0 bg-gray-700 hover:bg-gray-600 text-white p-1.5 md:p-2 rounded-lg transition text-lg"
+                            className="absolute top-0 right-0 bg-gray-100 hover:bg-gray-600 text-gray-900 p-1.5 md:p-2 rounded-lg transition text-lg"
                           >
                             ⋯
                           </button>
 
                           <div className="flex flex-col gap-3 pr-8">
                             <div className="flex-1">
-                              <h3 className="font-bold text-base md:text-lg text-white truncate">{product.name}</h3>
+                              <h3 className="font-bold text-base md:text-lg text-gray-900 truncate">{product.name}</h3>
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1 md:mt-2 text-xs md:text-sm">
-                                <p className="text-gray-400">
-                                  Vendor Price: <span className="text-orange-400 font-medium">{formatPrice(product.basePrice)}</span>
+                                <p className="text-gray-500">
+                                  Vendor Price: <span className="text-blue-600 font-medium">{formatPrice(product.basePrice)}</span>
                                 </p>
-                                <p className="text-gray-400">
+                                <p className="text-gray-500">
                                   Client Price: <span className="text-green-400 font-medium">{formatPrice(product.finalPrice)}</span>
                                 </p>
-                                <p className="text-gray-400">
+                                <p className="text-gray-500">
                                   Margin: <span className="text-blue-400 font-medium">{product.margin}%</span>
                                 </p>
-                                <p className="text-gray-400">
+                                <p className="text-gray-500">
                                   MOQ: <span className="text-purple-400 font-medium">{product.moq}</span>
                                 </p>
                               </div>
@@ -711,13 +711,13 @@ export default function AdminDashboard() {
 
                           {/* Dropdown Menu */}
                           {openMenuId === product.id && (
-                            <div className="absolute right-0 top-full mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 w-40">
+                            <div className="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-xl z-50 w-40">
                               <button
                                 onClick={() => {
                                   openEditForm(product);
                                   setOpenMenuId(null);
                                 }}
-                                className="w-full text-left px-4 py-3 hover:bg-blue-600/20 text-blue-400 hover:text-blue-300 font-medium text-sm flex items-center gap-2 border-b border-gray-700 transition"
+                                className="w-full text-left px-4 py-3 hover:bg-blue-600/20 text-blue-400 hover:text-blue-300 font-medium text-sm flex items-center gap-2 border-b border-gray-200 transition"
                               >
                                 ✏️ Edit
                               </button>
@@ -742,7 +742,7 @@ export default function AdminDashboard() {
           </div>
 
           {/* Orders Section */}
-          <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-md rounded-xl border border-gray-700 p-4 md:p-8 hover:border-gray-600 transition-all duration-300">
+          <div className="bg-gradient-to-br from-white to-white rounded-xl border border-gray-200 p-4 md:p-8 hover:border-gray-200 transition-all duration-300">
             <div className="flex items-center gap-3 mb-4 md:mb-6">
               <div className="text-2xl md:text-3xl">📋</div>
               <h2 className="text-lg md:text-2xl font-bold">Recent Orders</h2>
@@ -755,12 +755,12 @@ export default function AdminDashboard() {
                   value={orderSearch}
                   onChange={(e) => setOrderSearch(e.target.value)}
                   placeholder="Search orders"
-                  className="w-full bg-gray-900/70 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-500"
+                  className="w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-600"
                 />
                 <select
                   value={orderFilter}
                   onChange={(e) => setOrderFilter(e.target.value)}
-                  className="w-full bg-gray-900/70 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-500"
+                  className="w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-600"
                 >
                   <option value="all">Filter: All statuses</option>
                   <option value="PENDING">Pending</option>
@@ -771,7 +771,7 @@ export default function AdminDashboard() {
                 <select
                   value={orderSort}
                   onChange={(e) => setOrderSort(e.target.value)}
-                  className="w-full bg-gray-900/70 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-500"
+                  className="w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-600"
                 >
                   <option value="newest">Sort: Newest date</option>
                   <option value="oldest">Oldest date</option>
@@ -783,16 +783,16 @@ export default function AdminDashboard() {
             )}
 
             {orders.length === 0 ? (
-              <p className="text-gray-400 text-center py-6 md:py-8 text-sm md:text-base">No orders found</p>
+              <p className="text-gray-500 text-center py-6 md:py-8 text-sm md:text-base">No orders found</p>
             ) : visibleOrders.length === 0 ? (
-              <p className="text-gray-400 text-center py-6 md:py-8 text-sm md:text-base">No orders match your search or filters</p>
+              <p className="text-gray-500 text-center py-6 md:py-8 text-sm md:text-base">No orders match your search or filters</p>
             ) : (
               <div className="space-y-2 max-h-96 overflow-y-auto">
                 {visibleOrders.map(order => (
-                  <div key={order.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-gray-900/50 p-3 md:p-4 rounded-lg border border-gray-700 hover:border-gray-600 hover:bg-gray-800/50 transition-all duration-200 gap-2 sm:gap-4">
+                  <div key={order.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-gray-50 p-3 md:p-4 rounded-lg border border-gray-200 hover:border-gray-200 hover:bg-white transition-all duration-200 gap-2 sm:gap-4">
                     <div className="flex-1">
-                      <p className="font-medium text-white text-sm md:text-base">Order #{order.id}</p>
-                      <p className="text-xs md:text-sm text-gray-400">Total: <span className="text-green-400 font-semibold">₹{order.totalAmount}</span></p>
+                      <p className="font-medium text-gray-900 text-sm md:text-base">Order #{order.id}</p>
+                      <p className="text-xs md:text-sm text-gray-500">Total: <span className="text-green-400 font-semibold">₹{order.totalAmount}</span></p>
                     </div>
                     <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${
                       String(order.status || "").toUpperCase() === "DELIVERED" ? "bg-green-500/20 text-green-300" :

@@ -21,18 +21,18 @@ export default function SupplierProfilePage() {
   }, [params.id]);
 
   if (loading) {
-    return <main className="min-h-screen bg-[#0d1422] px-4 py-12 text-white">Loading supplier...</main>;
+    return <main className="min-h-screen bg-gray-100 px-4 py-12 text-gray-900">Loading supplier...</main>;
   }
 
   if (!supplier) {
-    return <main className="min-h-screen bg-[#0d1422] px-4 py-12 text-white">Supplier not found.</main>;
+    return <main className="min-h-screen bg-gray-100 px-4 py-12 text-gray-900">Supplier not found.</main>;
   }
 
   const name = supplier.companyName || `${supplier.firstName || "Supplier"} ${supplier.lastName || ""}`;
 
   return (
-    <main className="min-h-screen bg-[#0d1422] text-white">
-      <section className="border-b border-white/10 bg-white/[0.04] px-4 py-10 md:px-8">
+    <main className="min-h-screen bg-gray-100 text-gray-900">
+      <section className="border-b border-gray-200 bg-white px-4 py-10 md:px-8">
         <div className="mx-auto max-w-7xl">
           <Link href="/suppliers" className="mb-5 inline-flex text-sm font-bold text-sky-300">Back to suppliers</Link>
           <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
@@ -44,12 +44,12 @@ export default function SupplierProfilePage() {
                 <span className="rounded-full bg-sky-400/10 px-3 py-1 text-xs font-bold text-sky-300">{supplier.responseRate || 80}% response rate</span>
               </div>
               <h1 className="text-3xl font-extrabold md:text-5xl">{name}</h1>
-              <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300">{supplier.aboutCompany || "Industrial supplier on Bazara with a growing product catalog and bulk order capability."}</p>
+              <p className="mt-3 max-w-3xl text-sm leading-6 text-gray-600">{supplier.aboutCompany || "Industrial supplier on Bazara with a growing product catalog and bulk order capability."}</p>
             </div>
-            <div className="rounded-lg border border-white/10 bg-[#172234] p-4 text-sm">
-              <p><span className="text-slate-400">Location:</span> {supplier.location || "Not added"}</p>
-              <p className="mt-2"><span className="text-slate-400">GST:</span> {supplier.gstNumber || "Not added"}</p>
-              <p className="mt-2"><span className="text-slate-400">Products:</span> {supplier.productCount}</p>
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm">
+              <p><span className="text-gray-500">Location:</span> {supplier.location || "Not added"}</p>
+              <p className="mt-2"><span className="text-gray-500">GST:</span> {supplier.gstNumber || "Not added"}</p>
+              <p className="mt-2"><span className="text-gray-500">Products:</span> {supplier.productCount}</p>
             </div>
           </div>
         </div>
@@ -59,14 +59,14 @@ export default function SupplierProfilePage() {
         <h2 className="mb-5 text-xl font-bold">Product Catalog</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {(supplier.products || []).map((product) => (
-            <Link key={product.id} href={`/product/${product.id}`} className="overflow-hidden rounded-lg border border-white/10 bg-white/[0.04] transition hover:border-orange-400/60">
+            <Link key={product.id} href={`/product/${product.id}`} className="overflow-hidden rounded-lg border border-gray-200 bg-white transition hover:border-blue-300">
               <div className="h-40 bg-white">
                 <img src={product.images?.[0] || "/industrial.jpg"} alt={product.name} className="h-full w-full object-cover" />
               </div>
               <div className="p-4">
                 <h3 className="font-bold line-clamp-2">{product.name}</h3>
-                <p className="mt-2 text-sm font-bold text-orange-300">{formatPrice(product.finalPrice)}</p>
-                <p className="mt-1 text-xs text-slate-400">MOQ: {product.moq}</p>
+                <p className="mt-2 text-sm font-bold text-blue-600">{formatPrice(product.finalPrice)}</p>
+                <p className="mt-1 text-xs text-gray-500">MOQ: {product.moq}</p>
               </div>
             </Link>
           ))}

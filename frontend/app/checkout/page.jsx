@@ -210,7 +210,7 @@ export default function CheckoutPage() {
           postalCode: form.postalCode
         },
         theme: {
-          color: "#ea580c"
+          color: "#0f62fe"
         },
         handler: async (response) => {
           try {
@@ -277,7 +277,7 @@ export default function CheckoutPage() {
             />
           ))}
           {cart.length > 5 && (
-            <div className="flex h-16 w-16 items-center justify-center rounded-lg border-2 border-white bg-gray-950 text-sm font-bold text-white">
+            <div className="flex h-16 w-16 items-center justify-center rounded-lg border-2 border-white bg-gray-900 text-sm font-bold text-white">
               +{cart.length - 5}
             </div>
           )}
@@ -311,7 +311,7 @@ export default function CheckoutPage() {
             <button
               onClick={payNow}
               disabled={placingOrder}
-              className="mt-6 w-full rounded-full bg-orange-600 px-6 py-4 text-base font-extrabold text-white shadow-lg shadow-orange-600/20 transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:shadow-none"
+              className="mt-6 w-full rounded-full bg-blue-600 px-6 py-4 text-base font-extrabold text-white shadow-lg shadow-blue-600/15 transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:shadow-none"
             >
               {placingOrder ? "Paying..." : "Pay now"}
             </button>
@@ -371,7 +371,7 @@ export default function CheckoutPage() {
       <div className="mx-auto max-w-7xl px-4 py-8 md:px-8 md:py-10">
         <button
           onClick={() => (step === "payment" ? setStep("address") : router.push("/cart"))}
-          className="mb-5 inline-flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:border-orange-500 hover:text-orange-600"
+          className="mb-5 inline-flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:border-blue-600 hover:text-blue-600"
         >
           <span aria-hidden="true">&lt;-</span>
           {step === "payment" ? "Back to shipping" : "Back to cart"}
@@ -389,7 +389,7 @@ export default function CheckoutPage() {
             <h2 className="text-xl font-bold">Your cart is empty</h2>
             <button
               onClick={() => router.push("/#featured-products")}
-              className="mt-6 rounded-full bg-orange-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-orange-700"
+              className="mt-6 rounded-full bg-blue-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-blue-700"
             >
               Browse products
             </button>
@@ -409,7 +409,7 @@ export default function CheckoutPage() {
                   <label className="block text-xs font-medium text-gray-500">Country / region <span className="text-red-500">*</span></label>
                   <div className="mt-1 flex items-center justify-between">
                     <span className="text-base font-semibold">India</span>
-                    <span className="text-xl text-gray-400">v</span>
+                    <span className="text-xl text-gray-500">v</span>
                   </div>
                 </div>
 
@@ -461,7 +461,7 @@ export default function CheckoutPage() {
                   <button
                     type="button"
                     onClick={useCurrentLocation}
-                    className="hidden text-sm font-semibold underline transition hover:text-orange-600 sm:inline"
+                    className="hidden text-sm font-semibold underline transition hover:text-blue-600 sm:inline"
                   >
                     Use my current location
                   </button>
@@ -471,7 +471,7 @@ export default function CheckoutPage() {
                   value={form.apartment}
                   onChange={(e) => updateField("apartment", e.target.value)}
                   placeholder="Apartment, suite, unit, building, floor (optional)"
-                  className="mt-4 w-full rounded-lg border border-gray-200 px-4 py-4 text-base outline-none transition focus:border-orange-500"
+                  className="mt-4 w-full rounded-lg border border-gray-200 px-4 py-4 text-base outline-none transition focus:border-blue-600"
                 />
 
                 <div className="mt-6 grid gap-4 md:grid-cols-3">
@@ -479,19 +479,19 @@ export default function CheckoutPage() {
                     value={form.state}
                     onChange={(e) => updateField("state", e.target.value)}
                     placeholder="State / province *"
-                    className="rounded-lg border border-gray-200 px-4 py-4 text-base outline-none transition focus:border-orange-500"
+                    className="rounded-lg border border-gray-200 px-4 py-4 text-base outline-none transition focus:border-blue-600"
                   />
                   <input
                     value={form.city}
                     onChange={(e) => updateField("city", e.target.value)}
                     placeholder="City *"
-                    className="rounded-lg border border-gray-200 px-4 py-4 text-base outline-none transition focus:border-orange-500"
+                    className="rounded-lg border border-gray-200 px-4 py-4 text-base outline-none transition focus:border-blue-600"
                   />
                   <input
                     value={form.postalCode}
                     onChange={(e) => updateField("postalCode", e.target.value)}
                     placeholder="Postal code *"
-                    className="rounded-lg border border-gray-200 px-4 py-4 text-base outline-none transition focus:border-orange-500"
+                    className="rounded-lg border border-gray-200 px-4 py-4 text-base outline-none transition focus:border-blue-600"
                   />
                 </div>
 
@@ -507,7 +507,7 @@ export default function CheckoutPage() {
 
                 <button
                   onClick={continueToPayment}
-                  className="mt-10 rounded-full bg-orange-600 px-9 py-4 text-base font-extrabold text-white shadow-lg shadow-orange-600/20 transition hover:bg-orange-700"
+                  className="mt-10 rounded-full bg-blue-600 px-9 py-4 text-base font-extrabold text-white shadow-lg shadow-blue-600/15 transition hover:bg-blue-700"
                 >
                   Continue to payment
                 </button>
@@ -533,7 +533,7 @@ export default function CheckoutPage() {
                   </div>
                   <button
                     onClick={() => setStep("address")}
-                    className="text-sm font-bold underline transition hover:text-orange-600"
+                    className="text-sm font-bold underline transition hover:text-blue-600"
                   >
                     Change
                   </button>
@@ -593,7 +593,7 @@ export default function CheckoutPage() {
                   </label>
                 ))}
 
-                <button className="mx-auto mt-9 block text-sm font-medium hover:text-orange-600">
+                <button className="mx-auto mt-9 block text-sm font-medium hover:text-blue-600">
                   More options v
                 </button>
               </div>

@@ -8,7 +8,7 @@ if (fs.existsSync(envPath)) {
   dotenv.config({ path: envPath });
 }
 
-const remoteUrl = process.env.REMOTE_DATABASE_URL || process.env.RENDER_DATABASE_URL || process.env.DATABASE_URL;
+const remoteUrl = process.env.SOURCE_DATABASE_URL || process.env.DATABASE_URL;
 let localUrl = process.env.LOCAL_DATABASE_URL;
 
 if (!localUrl) {
@@ -65,7 +65,7 @@ async function copyTable(remoteClient, localClient, table) {
 
 async function main() {
   if (!remoteUrl) {
-    throw new Error('REMOTE_DATABASE_URL or DATABASE_URL must be set in .env.local or environment variables.');
+    throw new Error('SOURCE_DATABASE_URL or DATABASE_URL must be set in .env.local or environment variables.');
   }
 
   if (!localUrl) {
@@ -83,9 +83,9 @@ async function main() {
     connectionTimeoutMillis: 15000,
   };
 
-  if (/\.render\.com/i.test(remoteUrl)) {
+  if (!['localhost', '127.0.0.1', '::1'].includes(remoteHost)) {
     remoteClientOptions.ssl = {
-      rejectUnauthorized: false,
+      rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED === 'false' ? false : true,
       servername: remoteHost,
       minVersion: 'TLSv1.2',
     };
@@ -130,10 +130,10 @@ async function main() {
     if (error.message.includes('Connection terminated unexpectedly')) {
       console.error('\nThis usually means the remote PostgreSQL server accepted the TLS connection, but then closed the session before authentication.');
       console.error('Please verify:');
-      console.error('- REMOTE_DATABASE_URL is exactly the External Database URL from Render');
+      console.error('- the source database URL is correct');
       console.error('- the database name, username, and password are correct');
-      console.error('- external DB access is allowed for your Render database');
-      console.error('- your IP/network is not blocked by Render');
+      console.error('- external DB access is allowed for the source database');
+      console.error('- your IP/network is not blocked by the database provider');
     }
     process.exitCode = 1;
   } finally {

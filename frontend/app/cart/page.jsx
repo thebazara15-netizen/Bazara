@@ -228,7 +228,7 @@ export default function CartPage() {
           <div>
             <button
               onClick={() => router.push("/#featured-products")}
-              className="mb-4 inline-flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:border-orange-500 hover:text-orange-600"
+              className="mb-4 inline-flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:border-blue-600 hover:text-blue-600"
             >
               <span aria-hidden="true">←</span>
               Back to dashboard
@@ -241,7 +241,7 @@ export default function CartPage() {
 
           <button
             onClick={() => router.push("/#featured-products")}
-            className="rounded-full bg-gray-950 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-orange-600"
+            className="rounded-full bg-gray-900 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-blue-600"
           >
             Continue shopping
           </button>
@@ -257,7 +257,7 @@ export default function CartPage() {
             <p className="mt-2 text-sm text-gray-500">Add products from the client dashboard to start an order.</p>
             <button
               onClick={() => router.push("/#featured-products")}
-              className="mt-6 rounded-full bg-orange-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-orange-700"
+              className="mt-6 rounded-full bg-blue-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-blue-700"
             >
               Browse products
             </button>
@@ -271,7 +271,7 @@ export default function CartPage() {
                   aria-label="Select all cart items"
                   className={`flex h-8 w-8 items-center justify-center rounded-md border text-lg font-bold transition ${
                     allSelected
-                      ? "border-gray-950 bg-gray-950 text-white"
+                      ? "border-gray-950 bg-gray-900 text-white"
                       : "border-gray-300 bg-white text-transparent"
                   }`}
                 >
@@ -297,7 +297,7 @@ export default function CartPage() {
                         aria-label={`Select ${product.name}`}
                         className={`mt-32 flex h-8 w-8 items-center justify-center rounded-md border text-lg font-bold transition sm:mt-28 ${
                           isSelected
-                            ? "border-gray-950 bg-gray-950 text-white"
+                            ? "border-gray-950 bg-gray-900 text-white"
                             : "border-gray-300 bg-white text-transparent"
                         }`}
                       >
@@ -327,7 +327,7 @@ export default function CartPage() {
                               {product.description || "Industrial B2B product configured for bulk purchasing."}
                             </p>
                             <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
-                              <span className="rounded-full bg-orange-50 px-3 py-1 text-orange-700">Lowest among similar</span>
+                              <span className="rounded-full bg-blue-50 px-3 py-1 text-blue-700">Lowest among similar</span>
                               <span className="rounded-full bg-blue-50 px-3 py-1 text-blue-700">Ready to ship</span>
                               <span className="rounded-full bg-gray-100 px-3 py-1 text-gray-700">
                                 MOQ: {product.moq || 1} pieces
@@ -410,7 +410,7 @@ export default function CartPage() {
                     </div>
                   ))}
                   {selectedItems.length > 5 && (
-                    <div className="flex aspect-square items-center justify-center rounded-lg bg-gray-950 text-sm font-bold text-white shadow-sm">
+                    <div className="flex aspect-square items-center justify-center rounded-lg bg-gray-900 text-sm font-bold text-white shadow-sm">
                       +{selectedItems.length - 5}
                     </div>
                   )}
@@ -436,7 +436,7 @@ export default function CartPage() {
                 <button
                   onClick={goToCheckout}
                   disabled={cart.length === 0 || selectedIds.length === 0}
-                  className="mt-8 w-full rounded-full bg-orange-600 px-6 py-4 text-base font-extrabold text-white shadow-lg shadow-orange-600/20 transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:shadow-none"
+                  className="mt-8 w-full rounded-full bg-blue-600 px-6 py-4 text-base font-extrabold text-white shadow-lg shadow-blue-600/15 transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:shadow-none"
                 >
                   Check out
                 </button>

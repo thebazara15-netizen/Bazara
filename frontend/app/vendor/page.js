@@ -299,43 +299,43 @@ export default function VendorDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white p-4 md:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 via-gray-100 to-gray-100 text-gray-900 p-4 md:p-8">
 
       {/* Header */}
       <div className="mb-8 md:mb-12">
-        <h1 className="text-3xl md:text-5xl font-bold bg-gradient-to-r from-orange-400 via-orange-500 to-red-500 bg-clip-text text-transparent mb-2 md:mb-3">
+        <h1 className="text-3xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 via-blue-600 to-blue-600 bg-clip-text text-transparent mb-2 md:mb-3">
           Vendor Dashboard
         </h1>
-        <p className="text-gray-400 text-sm md:text-lg">Manage and showcase your premium products</p>
+        <p className="text-gray-500 text-sm md:text-lg">Manage and showcase your premium products</p>
       </div>
 
       <div className="mb-8 grid gap-4 xl:grid-cols-2">
-        <section className="rounded-xl border border-gray-700/50 bg-gray-800/40 p-4 md:p-6">
+        <section className="rounded-xl border border-gray-200 bg-white p-4 md:p-6">
           <div className="mb-4 flex items-center justify-between gap-3">
-            <h2 className="text-lg font-bold text-white">Buyer Inquiries</h2>
+            <h2 className="text-lg font-bold text-gray-900">Buyer Inquiries</h2>
             <span className="rounded-full bg-sky-400/10 px-3 py-1 text-xs font-bold text-sky-300">{inquiries.length} leads</span>
           </div>
           <div className="space-y-3 max-h-80 overflow-y-auto">
             {inquiries.length === 0 ? (
-              <p className="py-6 text-center text-sm text-gray-400">No product inquiries yet.</p>
+              <p className="py-6 text-center text-sm text-gray-500">No product inquiries yet.</p>
             ) : inquiries.map((inquiry) => (
-              <div key={inquiry.id} className="rounded-lg border border-gray-700 bg-gray-900/50 p-3">
+              <div key={inquiry.id} className="rounded-lg border border-gray-200 bg-gray-50 p-3">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="font-semibold text-white">{inquiry.product?.name || "Product inquiry"}</p>
-                    <p className="mt-1 text-xs text-gray-400">
+                    <p className="font-semibold text-gray-900">{inquiry.product?.name || "Product inquiry"}</p>
+                    <p className="mt-1 text-xs text-gray-500">
                       {inquiry.buyer?.companyName || inquiry.buyer?.email || "Buyer"} · Qty {inquiry.quantity}
                     </p>
                   </div>
-                  <span className="rounded-full bg-orange-400/10 px-2 py-1 text-xs font-bold text-orange-300">{inquiry.status}</span>
+                  <span className="rounded-full bg-blue-50 px-2 py-1 text-xs font-bold text-blue-600">{inquiry.status}</span>
                 </div>
-                <p className="mt-2 text-sm text-gray-300">{inquiry.message || "Buyer requested more details."}</p>
+                <p className="mt-2 text-sm text-gray-600">{inquiry.message || "Buyer requested more details."}</p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {["CONTACTED", "QUOTED", "CLOSED"].map((status) => (
                     <button
                       key={status}
                       onClick={() => updateInquiryStatus(inquiry.id, status)}
-                      className="rounded-full border border-white/10 px-3 py-1 text-xs font-semibold text-gray-200 hover:bg-white/10"
+                      className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-200 hover:bg-gray-100"
                     >
                       {status}
                     </button>
@@ -346,20 +346,20 @@ export default function VendorDashboard() {
           </div>
         </section>
 
-        <section className="rounded-xl border border-gray-700/50 bg-gray-800/40 p-4 md:p-6">
+        <section className="rounded-xl border border-gray-200 bg-white p-4 md:p-6">
           <div className="mb-4 flex items-center justify-between gap-3">
-            <h2 className="text-lg font-bold text-white">Open RFQs</h2>
+            <h2 className="text-lg font-bold text-gray-900">Open RFQs</h2>
             <span className="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-bold text-emerald-300">{rfqs.length} open</span>
           </div>
           <div className="space-y-3 max-h-80 overflow-y-auto">
             {rfqs.length === 0 ? (
-              <p className="py-6 text-center text-sm text-gray-400">No open RFQs right now.</p>
+              <p className="py-6 text-center text-sm text-gray-500">No open RFQs right now.</p>
             ) : rfqs.slice(0, 8).map((rfq) => (
-              <div key={rfq.id} className="rounded-lg border border-gray-700 bg-gray-900/50 p-3">
+              <div key={rfq.id} className="rounded-lg border border-gray-200 bg-gray-50 p-3">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="font-semibold text-white">{rfq.title}</p>
-                    <p className="mt-1 text-xs text-gray-400">{rfq.quantity} {rfq.unit} · {rfq.deliveryLocation || "Delivery TBD"}</p>
+                    <p className="font-semibold text-gray-900">{rfq.title}</p>
+                    <p className="mt-1 text-xs text-gray-500">{rfq.quantity} {rfq.unit} · {rfq.deliveryLocation || "Delivery TBD"}</p>
                   </div>
                   <span className="rounded-full bg-sky-400/10 px-2 py-1 text-xs font-bold text-sky-300">{rfq.category || "General"}</span>
                 </div>
@@ -369,15 +369,15 @@ export default function VendorDashboard() {
                     placeholder="Quote price"
                     value={quoteInputs[rfq.id]?.price || ""}
                     onChange={(event) => setQuoteInputs((prev) => ({ ...prev, [rfq.id]: { ...prev[rfq.id], price: event.target.value } }))}
-                    className="rounded-lg border border-gray-700 bg-gray-950/60 px-3 py-2 text-sm outline-none focus:border-orange-500"
+                    className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-600"
                   />
                   <input
                     placeholder="Message"
                     value={quoteInputs[rfq.id]?.message || ""}
                     onChange={(event) => setQuoteInputs((prev) => ({ ...prev, [rfq.id]: { ...prev[rfq.id], message: event.target.value } }))}
-                    className="rounded-lg border border-gray-700 bg-gray-950/60 px-3 py-2 text-sm outline-none focus:border-orange-500"
+                    className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-600"
                   />
-                  <button onClick={() => sendQuote(rfq.id)} className="rounded-lg bg-orange-600 px-4 py-2 text-sm font-bold hover:bg-orange-700">
+                  <button onClick={() => sendQuote(rfq.id)} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700">
                     Quote
                   </button>
                 </div>
@@ -388,10 +388,10 @@ export default function VendorDashboard() {
       </div>
 
       {/* Add Product Form - Premium Card */}
-      <div className="mb-8 md:mb-12 bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-md rounded-2xl p-4 md:p-8 border border-gray-700/50 shadow-2xl hover:border-orange-500/30 transition">
+      <div className="mb-8 md:mb-12 bg-gradient-to-br from-white to-white rounded-2xl p-4 md:p-8 border border-gray-200 shadow-2xl hover:border-blue-600/30 transition">
         <div className="flex items-center gap-3 mb-4 md:mb-6">
           <div className="text-2xl md:text-3xl">📦</div>
-          <h2 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent">
+          <h2 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent">
             Add New Product
           </h2>
         </div>
@@ -402,7 +402,7 @@ export default function VendorDashboard() {
             placeholder="Product Name"
             value={form.name}
             onChange={handleChange}
-            className="bg-gray-700/50 border border-gray-600 rounded-lg p-2 md:p-3 text-white placeholder-gray-500 focus:border-orange-500 focus:outline-none transition text-sm md:text-base"
+            className="bg-white border border-gray-200 rounded-lg p-2 md:p-3 text-gray-900 placeholder-gray-400 focus:border-blue-600 focus:outline-none transition text-sm md:text-base"
           />
 
           <input
@@ -410,7 +410,7 @@ export default function VendorDashboard() {
             placeholder="Category"
             value={form.category}
             onChange={handleChange}
-            className="bg-gray-700/50 border border-gray-600 rounded-lg p-2 md:p-3 text-white placeholder-gray-500 focus:border-orange-500 focus:outline-none transition text-sm md:text-base"
+            className="bg-white border border-gray-200 rounded-lg p-2 md:p-3 text-gray-900 placeholder-gray-400 focus:border-blue-600 focus:outline-none transition text-sm md:text-base"
           />
 
           <input
@@ -418,7 +418,7 @@ export default function VendorDashboard() {
             placeholder="MOQ (Minimum Order Quantity)"
             value={form.moq}
             onChange={handleChange}
-            className="bg-gray-700/50 border border-gray-600 rounded-lg p-2 md:p-3 text-white placeholder-gray-500 focus:border-orange-500 focus:outline-none transition text-sm md:text-base"
+            className="bg-white border border-gray-200 rounded-lg p-2 md:p-3 text-gray-900 placeholder-gray-400 focus:border-blue-600 focus:outline-none transition text-sm md:text-base"
           />
 
           <input
@@ -426,7 +426,7 @@ export default function VendorDashboard() {
             placeholder="Stock Quantity"
             value={form.stock}
             onChange={handleChange}
-            className="bg-gray-700/50 border border-gray-600 rounded-lg p-2 md:p-3 text-white placeholder-gray-500 focus:border-orange-500 focus:outline-none transition text-sm md:text-base"
+            className="bg-white border border-gray-200 rounded-lg p-2 md:p-3 text-gray-900 placeholder-gray-400 focus:border-blue-600 focus:outline-none transition text-sm md:text-base"
           />
 
           <input
@@ -434,7 +434,7 @@ export default function VendorDashboard() {
             placeholder="Base Price (Rs.)"
             value={form.basePrice}
             onChange={handleChange}
-            className="bg-gray-700/50 border border-gray-600 rounded-lg p-2 md:p-3 text-white placeholder-gray-500 focus:border-orange-500 focus:outline-none transition text-sm md:text-base"
+            className="bg-white border border-gray-200 rounded-lg p-2 md:p-3 text-gray-900 placeholder-gray-400 focus:border-blue-600 focus:outline-none transition text-sm md:text-base"
           />
         </div>
 
@@ -443,11 +443,11 @@ export default function VendorDashboard() {
           placeholder="Product Description"
           value={form.description}
           onChange={handleChange}
-          className="w-full mt-3 md:mt-4 bg-gray-700/50 border border-gray-600 rounded-lg p-2 md:p-3 text-white placeholder-gray-500 focus:border-orange-500 focus:outline-none transition h-20 md:h-24 text-sm md:text-base"
+          className="w-full mt-3 md:mt-4 bg-white border border-gray-200 rounded-lg p-2 md:p-3 text-gray-900 placeholder-gray-400 focus:border-blue-600 focus:outline-none transition h-20 md:h-24 text-sm md:text-base"
         />
 
         {/* Image Upload Section */}
-        <div className="mt-4 md:mt-6 p-4 md:p-6 bg-gray-900/50 border border-gray-600 rounded-lg">
+        <div className="mt-4 md:mt-6 p-4 md:p-6 bg-gray-50 border border-gray-200 rounded-lg">
           <label className="block text-xs md:text-sm font-semibold mb-3 flex items-center gap-2">
             <span className="text-xl md:text-2xl">🖼️</span>
             Upload Product Images (up to 10)
@@ -458,9 +458,9 @@ export default function VendorDashboard() {
             multiple
             accept="image/*"
             onChange={handleImageSelect}
-            className="w-full p-2 md:p-3 bg-gray-700/50 border-2 border-dashed border-gray-600 rounded-lg text-white cursor-pointer hover:border-orange-500 transition text-xs md:text-base"
+            className="w-full p-2 md:p-3 bg-white border-2 border-dashed border-gray-200 rounded-lg text-gray-900 cursor-pointer hover:border-blue-600 transition text-xs md:text-base"
           />
-          <p className="text-xs md:text-sm text-gray-400 mt-2">
+          <p className="text-xs md:text-sm text-gray-500 mt-2">
             {selectedImages.length === 0 ? 'No images selected' : `Selected: ${selectedImages.length} image${selectedImages.length !== 1 ? 's' : ''}`}
           </p>
 
@@ -472,9 +472,9 @@ export default function VendorDashboard() {
                   <img
                     src={preview}
                     alt={`Preview ${idx + 1}`}
-                    className="w-full h-20 md:h-24 object-cover rounded-lg border-2 border-orange-500/50 group-hover:border-orange-500 transition"
+                    className="w-full h-20 md:h-24 object-cover rounded-lg border-2 border-blue-200 group-hover:border-blue-600 transition"
                   />
-                  <span className="absolute top-1 right-1 bg-gradient-to-r from-orange-600 to-orange-700 text-white px-2 py-1 rounded text-xs font-bold">
+                  <span className="absolute top-1 right-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-2 py-1 rounded text-xs font-bold">
                     {idx + 1}
                   </span>
                 </div>
@@ -486,14 +486,14 @@ export default function VendorDashboard() {
         <button
           onClick={addProduct}
           disabled={loading}
-          className="w-full mt-4 md:mt-6 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 disabled:opacity-50 text-white font-bold py-2 md:py-3 rounded-lg transition transform hover:scale-105 shadow-lg text-sm md:text-base"
+          className="w-full mt-4 md:mt-6 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 text-white font-bold py-2 md:py-3 rounded-lg transition transform  shadow-lg text-sm md:text-base"
         >
           {loading ? "⏳ Adding Product..." : "✨ Add Product"}
         </button>
       </div>
 
       {/* My Products Section */}
-      <div className="bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-md rounded-2xl p-4 md:p-6 border border-gray-700/50 shadow-2xl">
+      <div className="bg-gradient-to-br from-white to-white rounded-2xl p-4 md:p-6 border border-gray-200 shadow-2xl">
         <div className="flex items-center gap-3 mb-4 md:mb-5">
           <div className="text-2xl md:text-3xl">🏪</div>
           <h2 className="text-lg md:text-xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
@@ -504,18 +504,18 @@ export default function VendorDashboard() {
         {products.length === 0 ? (
           <div className="text-center py-8 md:py-12">
             <p className="text-2xl md:text-3xl mb-3">📭</p>
-            <p className="text-gray-400 text-base md:text-lg">No products yet. Add your first product above!</p>
+            <p className="text-gray-500 text-base md:text-lg">No products yet. Add your first product above!</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4">
             {products.map(product => (
               <div 
                 key={product.id} 
-                className="group bg-gradient-to-br from-gray-700/25 to-gray-900/35 border border-gray-600/40 hover:border-orange-500/50 rounded-lg overflow-hidden transition shadow-lg hover:shadow-orange-950/20"
+                className="group bg-gradient-to-br from-white to-white border border-gray-200 hover:border-blue-600/50 rounded-lg overflow-hidden transition shadow-lg hover:shadow-blue-950/10"
               >
                 {/* Image Gallery */}
                 {product.images && product.images.length > 0 ? (
-                  <div className="relative h-32 bg-gray-950/80 overflow-hidden border-b border-gray-700/60">
+                  <div className="relative h-32 bg-gray-900/80 overflow-hidden border-b border-gray-200">
                     <img
                       src={normalizeImage(product.images[currentImageIndex[product.id] || 0])}
                       alt={product.name}
@@ -534,7 +534,7 @@ export default function VendorDashboard() {
 
                       {/* Dropdown Menu */}
                       {openMenuId === product.id && (
-                        <div className="absolute right-0 top-full mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 w-40">
+                        <div className="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-xl z-50 w-40">
                           <button
                             onClick={() => {
                               deleteProduct(product.id);
@@ -573,40 +573,40 @@ export default function VendorDashboard() {
                           key={idx}
                           onClick={() => setCurrentImageIndex(prev => ({ ...prev, [product.id]: idx }))}
                           className={`w-1.5 h-1.5 rounded-full transition ${
-                            idx === (currentImageIndex[product.id] || 0) ? 'bg-orange-500' : 'bg-gray-400'
+                            idx === (currentImageIndex[product.id] || 0) ? 'bg-blue-600' : 'bg-gray-400'
                           }`}
                         />
                       ))}
                     </div>
                   </div>
                 ) : (
-                  <div className="w-full h-32 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center border-b border-gray-700/60">
+                  <div className="w-full h-32 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center border-b border-gray-200">
                     <span className="text-gray-500 text-base md:text-lg">📷 No Image</span>
                   </div>
                 )}
 
                 {/* Product Info */}
                 <div className="p-3">
-                  <h3 className="font-bold text-sm mb-1.5 text-white line-clamp-1 group-hover:text-orange-400 transition">
+                  <h3 className="font-bold text-sm mb-1.5 text-gray-900 line-clamp-1 group-hover:text-blue-600 transition">
                     {product.name}
                   </h3>
-                  <p className="text-gray-400 text-xs mb-2 line-clamp-2 min-h-8">{product.description || "No description added"}</p>
+                  <p className="text-gray-500 text-xs mb-2 line-clamp-2 min-h-8">{product.description || "No description added"}</p>
                   
                   {/* Price */}
-                  <div className="mb-2 rounded-md border border-orange-500/25 bg-orange-600/10 px-2.5 py-2">
-                    <p className="text-[11px] text-gray-400">Base Price</p>
-                    <p className="text-lg md:text-xl font-bold text-orange-400">₹{product.basePrice}</p>
+                  <div className="mb-2 rounded-md border border-blue-200 bg-blue-50 px-2.5 py-2">
+                    <p className="text-[11px] text-gray-500">Base Price</p>
+                    <p className="text-lg md:text-xl font-bold text-blue-600">₹{product.basePrice}</p>
                   </div>
 
                   {/* Details Grid */}
                   <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="bg-gray-700/40 px-2.5 py-2 rounded-md">
+                    <div className="bg-gray-50 px-2.5 py-2 rounded-md">
                       <p className="text-gray-500 text-[11px]">MOQ</p>
-                      <p className="text-white font-semibold text-xs">{product.moq} units</p>
+                      <p className="text-gray-900 font-semibold text-xs">{product.moq} units</p>
                     </div>
-                    <div className="bg-gray-700/40 px-2.5 py-2 rounded-md">
+                    <div className="bg-gray-50 px-2.5 py-2 rounded-md">
                       <p className="text-gray-500 text-[11px]">Stock</p>
-                      <p className="text-white font-semibold text-xs">{product.stock} units</p>
+                      <p className="text-gray-900 font-semibold text-xs">{product.stock} units</p>
                     </div>
                   </div>
                 </div>
