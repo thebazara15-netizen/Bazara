@@ -2,12 +2,38 @@ require('dotenv').config();
 require('dotenv').config({ path: '.env.local', override: true });
 
 const app = require('./app');
-const { createSequelize } = require('./config/database');
+const { sequelize } = require('./models');
 const logger = require('./utils/logger');
 
 const PORT = process.env.PORT || 5000;
+const isProduction = process.env.NODE_ENV === 'production';
 let server;
-let sequelize = createSequelize();
+
+function isEnabled(value) {
+  return String(value || '').trim().toLowerCase() === 'true';
+}
+
+async function synchronizeDevelopmentDatabase() {
+  const shouldSync = isEnabled(process.env.DB_SYNC);
+  const shouldAlter = isEnabled(process.env.DB_SYNC_ALTER);
+
+  if (isProduction) {
+    if (shouldSync || shouldAlter) {
+      throw new Error('Database synchronization cannot be enabled in production');
+    }
+
+    logger.info('database_schema_sync_skipped', { reason: 'production' });
+    return;
+  }
+
+  if (!shouldSync) {
+    logger.info('database_schema_sync_skipped', { reason: 'disabled' });
+    return;
+  }
+
+  await sequelize.sync({ alter: shouldAlter });
+  logger.warn('development_database_schema_synced', { alter: shouldAlter });
+}
 
 async function startServer() {
   try {
@@ -36,8 +62,7 @@ async function startServer() {
       throw error;
     }
 
-    await sequelize.sync({ alter: true });
-    logger.info('database_tables_synced');
+    await synchronizeDevelopmentDatabase();
 
     server = app.listen(PORT, () => {
       logger.info('server_running', { port: PORT, pid: process.pid });

@@ -4,9 +4,31 @@ const Product = require('../../../models/Product');
 const logger = require('../../../utils/logger');
 const { getDisplayPrice } = require('../../../utils/pricingEngine');
 
+const safeUserAttributes = [
+  'id',
+  'email',
+  'role',
+  'companyName',
+  'gstNumber',
+  'isVerified',
+  'firstName',
+  'lastName',
+  'phone',
+  'location',
+  'businessType',
+  'aboutCompany',
+  'responseRate',
+  'createdAt',
+  'updatedAt'
+];
+
+const serializeUser = (user) => Object.fromEntries(
+  safeUserAttributes.map((attribute) => [attribute, user[attribute]])
+);
+
 exports.getUsers = async () => {
   return await User.findAll({
-    attributes: { exclude: ['password'] },
+    attributes: safeUserAttributes,
     order: [['createdAt', 'DESC']]
   });
 };
@@ -19,10 +41,7 @@ exports.approveVendor = async (id) => {
   user.isVerified = true;
   await user.save();
 
-  const sanitizedUser = user.toJSON();
-  delete sanitizedUser.password;
-
-  return sanitizedUser;
+  return serializeUser(user);
 };
 
 exports.getOrders = async () => {

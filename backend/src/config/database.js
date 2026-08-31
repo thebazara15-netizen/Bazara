@@ -1,51 +1,55 @@
-const { Sequelize } = require("sequelize");
+const path = require('path');
+const { Sequelize } = require('sequelize');
 
-console.log('📋 Database config loading...');
+const databaseUrl = (process.env.DATABASE_URL || '').trim();
+const useDatabaseUrl = String(process.env.DB_USE_DATABASE_URL || '').toLowerCase() === 'true';
+const hasLocalPostgresConfig = Boolean(process.env.DB_NAME && process.env.DB_USER && process.env.DB_HOST);
+const isProduction = process.env.NODE_ENV === 'production';
 
-const DATABASE_URL = (process.env.DATABASE_URL || '').trim() || undefined;
-const DB_SSL = String(process.env.DB_SSL || '').toLowerCase();
+function postgresOptions(host) {
+  const sslSetting = String(process.env.DB_SSL || '').toLowerCase();
+  const rejectUnauthorizedSetting = String(process.env.DB_SSL_REJECT_UNAUTHORIZED || '').toLowerCase();
+  const isLocal = ['localhost', '127.0.0.1', '::1'].includes(host);
+  const enableSsl = sslSetting === 'true' || (sslSetting !== 'false' && !isLocal);
+  const rejectUnauthorized = rejectUnauthorizedSetting !== 'false';
 
-console.log('   DATABASE_URL:', DATABASE_URL ? '[set]' : '[empty]');
+  if (isProduction && !isLocal && !enableSsl) {
+    throw new Error('TLS is required for remote PostgreSQL in production');
+  }
 
-if (!DATABASE_URL) {
-  throw new Error('Missing DATABASE_URL. Please set DATABASE_URL to your Neon or PostgreSQL connection string.');
+  if (isProduction && enableSsl && !rejectUnauthorized) {
+    throw new Error('TLS certificate verification cannot be disabled in production');
+  }
+
+  return {
+    dialect: 'postgres',
+    logging: false,
+    pool: { max: 5, min: 0, acquire: 30000, idle: 10000 },
+    dialectOptions: enableSsl
+      ? { ssl: { require: true, rejectUnauthorized } }
+      : undefined
+  };
 }
 
-const sslOptions = {
-  ssl: {
-    require: true,
-    rejectUnauthorized: false
-  }
-};
-
-const normalizedDatabaseUrl = DATABASE_URL.replace(/^postgresql:\/\//i, 'postgres://');
-const databaseHost = (function() {
-  try { return new URL(normalizedDatabaseUrl).hostname; } catch { return null; }
-})();
-const isLocalDatabase = ['localhost', '127.0.0.1', '::1'].includes(databaseHost);
-const enableSsl = DB_SSL === 'true' || (DB_SSL !== 'false' && !isLocalDatabase);
-
 function createSequelize() {
-  const poolConfig = {
-    max: 5,
-    min: 0,
-    acquire: 30000,
-    idle: 10000
-  };
+  if (databaseUrl && (isProduction || useDatabaseUrl)) {
+    const normalizedUrl = databaseUrl.replace(/^postgresql:\/\//i, 'postgres://');
+    const host = new URL(normalizedUrl).hostname;
+    return new Sequelize(normalizedUrl, postgresOptions(host));
+  }
 
-  const urlHost = databaseHost || 'unknown';
-  console.log(`\n🗄️  DATABASE: PostgreSQL via DATABASE_URL`);
-  console.log(`   Host: ${urlHost}`);
-  console.log(`   Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`   SSL: ${enableSsl ? 'enabled' : 'disabled'}\n`);
+  if (hasLocalPostgresConfig) {
+    return new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD || '', {
+      ...postgresOptions(process.env.DB_HOST),
+      host: process.env.DB_HOST,
+      port: Number(process.env.DB_PORT) || 5432
+    });
+  }
 
-  return new Sequelize(normalizedDatabaseUrl, {
-    dialect: "postgres",
-    protocol: "postgres",
-    logging: false,
-    pool: poolConfig,
-    dialectOptions: enableSsl ? sslOptions : undefined,
-    connectTimeoutMS: 30000
+  return new Sequelize({
+    dialect: 'sqlite',
+    storage: path.resolve(__dirname, '../../data/dev.sqlite'),
+    logging: false
   });
 }
 

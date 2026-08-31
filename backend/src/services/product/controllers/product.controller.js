@@ -1,41 +1,47 @@
+const fs = require('fs');
+const path = require('path');
 const { Op } = require('sequelize');
-const jwt = require('jsonwebtoken');
 const logger = require('../../../utils/logger');
 
 const Product = require('../../../models/Product');
-const User = require('../../../models/user');
 const { getDisplayPrice } = require('../../../utils/pricingEngine');
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+const UPLOAD_DIRECTORY = path.resolve(__dirname, '../../../../uploads');
 
-const getViewerRole = (req) => {
-  const token = req.headers.authorization?.split(' ')[1];
+async function cleanupRequestUploads(files) {
+  await Promise.all((files || []).map(async (file) => {
+    const candidatePath = path.resolve(file.path || path.join(UPLOAD_DIRECTORY, file.filename || ''));
 
-  if (!token) {
-    return null;
-  }
+    if (path.dirname(candidatePath) !== UPLOAD_DIRECTORY) {
+      logger.warn('Skipped unsafe upload cleanup path', { filename: file.filename });
+      return;
+    }
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    return decoded.role;
-  } catch {
-    return null;
-  }
-};
+    try {
+      await fs.promises.unlink(candidatePath);
+    } catch (error) {
+      logger.warn('Unable to clean up failed product upload', {
+        filename: file.filename,
+        code: error.code
+      });
+    }
+  }));
+}
 
 // Create Product
 exports.createProduct = async (req, res) => {
   try {
     const { name, description, category, moq, stock, basePrice } = req.body || {};
-    const token = req.headers.authorization?.split(' ')[1];
+    const vendorId = req.user.id;
 
-    // ✅ Extract vendor ID from token
-    if (!token) {
-      return res.status(401).json({ message: 'Unauthorized' });
+    const parsedStock = stock === undefined || stock === '' ? 0 : Number(stock);
+    if (!name || !Number.isFinite(Number(moq)) || Number(moq) <= 0 ||
+        !Number.isFinite(Number(basePrice)) || Number(basePrice) < 0 ||
+        !Number.isFinite(parsedStock) || parsedStock < 0) {
+      await cleanupRequestUploads(req.files);
+      return res.status(400).json({ message: 'Valid name, MOQ, stock, and base price are required' });
     }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const vendorId = decoded.id;
 
     // ✅ UPDATED: Handle multiple images
     const images = req.files ? req.files.map(file => file.filename) : [];
@@ -44,19 +50,21 @@ exports.createProduct = async (req, res) => {
       name,
       description,
       category,
-      moq,
-      stock,
-      basePrice,
+      moq: Number(moq),
+      stock: parsedStock,
+      basePrice: Number(basePrice),
       images, // ✅ store array of filenames
       vendorId, // ✅ Save vendor ID
       margin: 0,
       finalPrice: getDisplayPrice({ basePrice, moq, pricingTiers: [], margin: 0 })
     });
 
-    res.json(product);
+    res.status(201).json(product);
 
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    await cleanupRequestUploads(req.files);
+    logger.error('Create product error', error);
+    res.status(500).json({ message: 'Unable to create product' });
   }
 };
 
@@ -68,11 +76,12 @@ exports.getProducts = async (req, res) => {
     const searchTerm = (req.query.search || '').trim().toLowerCase();
 
     const where = {};
+    const searchOperator = Product.sequelize.getDialect() === 'postgres' ? Op.iLike : Op.like;
     if (searchTerm) {
       where[Op.or] = [
-        { name: { [Op.iLike]: `%${searchTerm}%` } },
-        { category: { [Op.iLike]: `%${searchTerm}%` } },
-        { description: { [Op.iLike]: `%${searchTerm}%` } }
+        { name: { [searchOperator]: `%${searchTerm}%` } },
+        { category: { [searchOperator]: `%${searchTerm}%` } },
+        { description: { [searchOperator]: `%${searchTerm}%` } }
       ];
     }
 
@@ -113,21 +122,15 @@ exports.getProducts = async (req, res) => {
     res.json(updatedProducts);
 
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    logger.error('Get products error', error);
+    res.status(500).json({ message: 'Unable to load products' });
   }
 };
 
 // ✅ NEW: Get only vendor's own products
 exports.getVendorProducts = async (req, res) => {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
-
-    if (!token) {
-      return res.status(401).json({ message: 'Unauthorized' });
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const vendorId = decoded.id;
+    const vendorId = req.user.id;
 
     const products = await Product.findAll({
       where: { vendorId }
@@ -144,21 +147,15 @@ exports.getVendorProducts = async (req, res) => {
     res.json(updatedProducts);
 
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    logger.error('Get vendor products error', error);
+    res.status(500).json({ message: 'Unable to load vendor products' });
   }
 };
 
 // ✅ NEW: Delete vendor's own product (vendors cannot modify, only delete)
 exports.deleteVendorProduct = async (req, res) => {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
-
-    if (!token) {
-      return res.status(401).json({ message: 'Unauthorized' });
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const vendorId = Number(decoded.id); // ✅ Ensure it's a number
+    const vendorId = Number(req.user.id);
 
     const product = await Product.findByPk(req.params.id);
 
@@ -177,6 +174,6 @@ exports.deleteVendorProduct = async (req, res) => {
 
   } catch (error) {
     logger.error('Delete product error:', error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: 'Unable to delete product' });
   }
 };

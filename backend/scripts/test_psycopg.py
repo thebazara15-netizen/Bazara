@@ -1,11 +1,13 @@
+import os
+
 import psycopg
 
-url = 'postgresql://b2b_user:pkXcAPK8w02PusDtjZ3FHWa7iGmi7Qmr@dpg-d7dsgt7lk1mc73evsht0-a.oregon-postgres.render.com:5432/b2b_db_72l1'
-print('url=', url)
-try:
-    conn = psycopg.connect(url, sslmode='require')
-    print('connected')
-    conn.close()
-except Exception as e:
-    import traceback
-    traceback.print_exc()
+
+database_url = os.environ.get("REMOTE_DATABASE_URL") or os.environ.get("DATABASE_URL")
+if not database_url:
+    raise RuntimeError("REMOTE_DATABASE_URL or DATABASE_URL must be set")
+
+with psycopg.connect(database_url) as connection:
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT 1")
+        print("Database connection succeeded")

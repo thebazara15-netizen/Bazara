@@ -1,8 +1,11 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const path = require('path');
 const logger = require('./utils/logger');
 
 const app = express();
+const isProduction = process.env.NODE_ENV === 'production';
 const allowedOrigins = [
   process.env.FRONTEND_URL,
   "http://localhost:3000",
@@ -12,12 +15,18 @@ const allowedOrigins = [
   "https://bazara-pi.vercel.app"
 ].filter(Boolean);
 
+app.use(helmet({
+  // The separate Next.js frontend requires a tested CSP rollout later.
+  contentSecurityPolicy: false,
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  ...(isProduction ? {} : { strictTransportSecurity: false })
+}));
 app.use(cors({
   origin: allowedOrigins,
   credentials: true
 }));
 app.use(express.json());
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));
 app.use(logger.requestMiddleware);
 
 // 🔍 DEBUG ROUTES ONE BY ONE

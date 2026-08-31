@@ -4,10 +4,39 @@ const User = require('../../../models/user');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
+const PUBLIC_ROLES = new Set(['CLIENT', 'VENDOR']);
+const MINIMUM_PASSWORD_LENGTH = 8;
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function validationError(code) {
+  const error = new Error('Registration validation failed');
+  error.code = code;
+  return error;
+}
+
 const getDisplayName = (user) => {
   const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ').trim();
   return fullName || user.companyName || user.email;
 };
+
+const serializeUser = (user) => ({
+  id: user.id,
+  email: user.email,
+  firstName: user.firstName,
+  lastName: user.lastName,
+  name: getDisplayName(user),
+  role: user.role,
+  companyName: user.companyName,
+  gstNumber: user.gstNumber,
+  phone: user.phone,
+  location: user.location,
+  businessType: user.businessType,
+  aboutCompany: user.aboutCompany,
+  responseRate: user.responseRate,
+  isVerified: user.isVerified,
+  createdAt: user.createdAt,
+  updatedAt: user.updatedAt
+});
 
 const createToken = (user) => jwt.sign(
   {
@@ -88,7 +117,7 @@ exports.registerUser = async (data) => {
   const {
     email,
     password,
-    role = 'CLIENT',
+    role: requestedRole = 'CLIENT',
     firstName,
     lastName,
     companyName,
@@ -96,23 +125,32 @@ exports.registerUser = async (data) => {
     phone
   } = data;
 
-  if (!email || !password) {
-    throw new Error('Email and password are required');
+  const normalizedEmail = String(email || '').trim().toLowerCase();
+  const role = String(requestedRole || 'CLIENT').trim().toUpperCase();
+
+  if (!EMAIL_PATTERN.test(normalizedEmail)) {
+    throw validationError('INVALID_EMAIL');
   }
 
-  if (role === 'ADMIN') {
-    throw new Error('Admin cannot be created');
+  if (typeof password !== 'string' || password.length < MINIMUM_PASSWORD_LENGTH) {
+    throw validationError('WEAK_PASSWORD');
   }
 
-  const existingUser = await User.findOne({ where: { email } });
+  if (!PUBLIC_ROLES.has(role)) {
+    throw validationError('INVALID_ROLE');
+  }
+
+  const existingUser = await User.findOne({ where: { email: normalizedEmail } });
   if (existingUser) {
-    throw new Error('User already exists');
+    const error = new Error('User already exists');
+    error.code = 'EMAIL_EXISTS';
+    throw error;
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
   const user = await User.create({
-    email,
+    email: normalizedEmail,
     password: hashedPassword,
     role,
     firstName,
@@ -120,17 +158,18 @@ exports.registerUser = async (data) => {
     companyName,
     gstNumber,
     phone,
-    isVerified: true // ✅ Auto-verify all users on signup (admins can mark as unverified if needed)
+    isVerified: role === 'CLIENT'
   });
 
-  return user;
+  return serializeUser(user);
 };
 
 // Login User
 exports.loginUser = async (data) => {
   const { email, password } = data;
+  const normalizedEmail = String(email || '').trim().toLowerCase();
 
-  const user = await User.findOne({ where: { email } });
+  const user = await User.findOne({ where: { email: normalizedEmail } });
   if (!user) {
     throw new Error('Invalid credentials');
   }
@@ -142,10 +181,7 @@ exports.loginUser = async (data) => {
 
   const token = createToken(user);
 
-  const userData = user.toJSON();
-  delete userData.password;
-
-  return { token, user: userData };
+  return { token, user: serializeUser(user) };
 };
 
 exports.startSocialLogin = (providerName, req, res) => {
