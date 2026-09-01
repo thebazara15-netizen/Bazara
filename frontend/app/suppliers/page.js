@@ -1,84 +1,67 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import MarketplaceFooter from "../../components/marketplace/MarketplaceFooter";
+import SupplierCard from "../../components/marketplace/supplier/SupplierCard";
+import { SupplierDirectoryEmpty, SupplierDirectoryError, SupplierDirectorySkeleton } from "../../components/marketplace/supplier/SupplierDirectoryState";
+import Icon from "../../components/marketplace/Icons";
 
 const API = "/api";
 
-export default function SuppliersPage() {
+function DirectorySearch({ query, onSearch }) {
+  const [value, setValue] = useState(query);
+  return <form role="search" onSubmit={(event) => { event.preventDefault(); onSearch(value.trim()); }} className="mt-6 flex max-w-2xl overflow-hidden rounded-xl border-2 border-slate-900 bg-white focus-within:border-orange-600 focus-within:ring-2 focus-within:ring-orange-100"><label htmlFor="supplier-search" className="sr-only">Search suppliers</label><input id="supplier-search" type="search" value={value} onChange={(event) => setValue(event.target.value)} placeholder="Search company, supplier name, or location" className="min-w-0 flex-1 px-4 py-3 text-sm outline-none placeholder:text-slate-400" /><button type="submit" aria-label="Search suppliers" className="inline-flex w-14 items-center justify-center bg-slate-950 text-white hover:bg-orange-700 focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-white"><Icon name="search" /></button></form>;
+}
+
+function SuppliersContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const query = (searchParams.get("q") || "").trim();
   const [suppliers, setSuppliers] = useState([]);
-  const [query, setQuery] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    fetch(`${API}/suppliers`)
-      .then((res) => res.json())
-      .then((data) => setSuppliers(Array.isArray(data) ? data : []))
-      .catch(() => setSuppliers([]));
-  }, []);
+    let cancelled = false;
+    const loadSuppliers = async () => {
+      setLoading(true);
+      setError(false);
+      try {
+        const url = query ? `${API}/suppliers?q=${encodeURIComponent(query)}` : `${API}/suppliers`;
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Supplier request failed");
+        const data = await response.json();
+        if (!cancelled) setSuppliers(Array.isArray(data) ? data : []);
+      } catch {
+        if (!cancelled) {
+          setSuppliers([]);
+          setError(true);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    loadSuppliers();
+    return () => { cancelled = true; };
+  }, [query]);
 
-  const visibleSuppliers = useMemo(() => {
-    const value = query.trim().toLowerCase();
-    if (!value) return suppliers;
-    return suppliers.filter((supplier) =>
-      [supplier.companyName, supplier.firstName, supplier.lastName, supplier.location, ...(supplier.categories || [])]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase()
-        .includes(value)
-    );
-  }, [query, suppliers]);
+  const search = (value) => router.push(value ? `/suppliers?q=${encodeURIComponent(value)}` : "/suppliers");
 
   return (
-    <main className="min-h-screen bg-[#0d1422] px-4 py-8 text-white md:px-8">
-      <div className="mx-auto max-w-7xl">
-        <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <h1 className="text-3xl font-extrabold md:text-5xl">Verified Suppliers</h1>
-            <p className="mt-2 text-sm text-slate-400">Discover vendors, storefronts, categories, and product catalogs.</p>
-          </div>
-          <Link href="/rfq" className="rounded-full bg-orange-600 px-5 py-3 text-sm font-bold transition hover:bg-orange-700">
-            Post RFQ
-          </Link>
-        </div>
+    <main className="min-h-screen overflow-x-hidden bg-slate-50 text-slate-900">
+      <section className="border-b border-slate-200 bg-white"><div className="marketplace-container py-10 sm:py-12"><div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between"><div><p className="marketplace-eyebrow">Supplier directory</p><h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-950 sm:text-5xl">Find businesses ready to supply</h1><p className="mt-4 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">Discover company storefronts, locations, categories, and real product catalogs across the Bazara marketplace.</p></div><Link href="/rfq" className="marketplace-button-secondary shrink-0">Post a requirement</Link></div><DirectorySearch key={query} query={query} onSearch={search} /></div></section>
 
-        <input
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="Search supplier, city, or category"
-          className="mb-6 w-full rounded-lg border border-white/10 bg-white/[0.04] px-4 py-3 text-sm outline-none focus:border-orange-400"
-        />
-
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {visibleSuppliers.map((supplier) => (
-            <Link key={supplier.id} href={`/suppliers/${supplier.id}`} className="rounded-lg border border-white/10 bg-white/[0.04] p-5 transition hover:border-orange-400/60 hover:bg-white/[0.07]">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h2 className="text-lg font-bold">{supplier.companyName || `${supplier.firstName || "Supplier"} ${supplier.lastName || ""}`}</h2>
-                  <p className="mt-1 text-sm text-slate-400">{supplier.location || "Location not added"}</p>
-                </div>
-                <span className={`rounded-full px-3 py-1 text-xs font-bold ${supplier.isVerified ? "bg-emerald-400/10 text-emerald-300" : "bg-amber-400/10 text-amber-300"}`}>
-                  {supplier.isVerified ? "Verified" : "Pending"}
-                </span>
-              </div>
-              <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-                <div className="rounded-md bg-[#172234] px-3 py-2">
-                  <span className="text-slate-400">Products</span>
-                  <p className="font-bold">{supplier.productCount}</p>
-                </div>
-                <div className="rounded-md bg-[#172234] px-3 py-2">
-                  <span className="text-slate-400">Response</span>
-                  <p className="font-bold">{supplier.responseRate || 80}%</p>
-                </div>
-              </div>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {(supplier.categories || []).slice(0, 4).map((category) => (
-                  <span key={category} className="rounded-full bg-sky-400/10 px-3 py-1 text-xs font-semibold text-sky-300">{category}</span>
-                ))}
-              </div>
-            </Link>
-          ))}
-        </div>
-      </div>
+      <section className="marketplace-container py-10 sm:py-12" aria-labelledby="supplier-results-title">
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-4"><div><p className="marketplace-eyebrow">Company storefronts</p><h2 id="supplier-results-title" className="mt-2 text-2xl font-bold text-slate-950">{query ? `Results for “${query}”` : "Marketplace suppliers"}</h2></div>{!loading && !error && <p className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm text-slate-600"><strong className="text-slate-950">{suppliers.length}</strong> supplier{suppliers.length === 1 ? "" : "s"}</p>}</div>
+        {loading ? <SupplierDirectorySkeleton /> : error ? <SupplierDirectoryError /> : suppliers.length === 0 ? <SupplierDirectoryEmpty query={query} onClear={() => search("")} /> : <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{suppliers.map((supplier) => <SupplierCard key={supplier.id} supplier={supplier} />)}</div>}
+      </section>
+      <MarketplaceFooter />
     </main>
   );
+}
+
+export default function SuppliersPage() {
+  return <Suspense fallback={<main className="min-h-screen bg-slate-50"><div className="marketplace-container py-10"><SupplierDirectorySkeleton /></div></main>}><SuppliersContent /></Suspense>;
 }

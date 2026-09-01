@@ -92,6 +92,7 @@ exports.getProducts = async (req, res) => {
     const minPrice = parseOptionalNonNegativeNumber(req.query.minPrice);
     const maxPrice = parseOptionalNonNegativeNumber(req.query.maxPrice);
     const maxMoq = parseOptionalNonNegativeNumber(req.query.maxMoq);
+    const vendorId = parseOptionalNonNegativeNumber(req.query.vendorId);
     const sort = String(req.query.sort || 'newest').trim().toLowerCase();
     const sortOptions = {
       newest: [['createdAt', 'DESC']],
@@ -100,10 +101,13 @@ exports.getProducts = async (req, res) => {
       moq_asc: [['moq', 'ASC'], ['createdAt', 'DESC']]
     };
 
-    if ([minPrice, maxPrice, maxMoq].some(Number.isNaN) ||
+    if ([minPrice, maxPrice, maxMoq, vendorId].some(Number.isNaN) ||
         (minPrice !== null && maxPrice !== null && minPrice > maxPrice) ||
         (maxMoq !== null && maxMoq <= 0) || !sortOptions[sort]) {
       return res.status(400).json({ message: 'Invalid product filter parameters' });
+    }
+    if (vendorId !== null && (!Number.isInteger(vendorId) || vendorId <= 0)) {
+      return res.status(400).json({ message: 'Invalid vendor ID' });
     }
 
     const where = {};
@@ -122,8 +126,9 @@ exports.getProducts = async (req, res) => {
       if (maxPrice !== null) where.finalPrice[Op.lte] = maxPrice;
     }
     if (maxMoq !== null) where.moq = { [Op.lte]: maxMoq };
+    if (vendorId !== null) where.vendorId = vendorId;
 
-    if (req.query.page || req.query.limit || searchTerm || category || minPrice !== null || maxPrice !== null || maxMoq !== null || req.query.sort) {
+    if (req.query.page || req.query.limit || searchTerm || category || minPrice !== null || maxPrice !== null || maxMoq !== null || vendorId !== null || req.query.sort) {
       const { count, rows } = await Product.findAndCountAll({
         where,
         limit,

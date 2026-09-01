@@ -1,30 +1,6 @@
-import Link from "next/link";
 import Icon from "./Icons";
 import SectionHeader from "./SectionHeader";
-
-function SupplierCard({ supplier }) {
-  const name = supplier.companyName || [supplier.firstName, supplier.lastName].filter(Boolean).join(" ") || "Supplier";
-
-  return (
-    <Link href={`/suppliers/${supplier.id}`} className="group flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-orange-300 hover:shadow-xl hover:shadow-slate-200/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600">
-      <div className="flex items-start gap-4">
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white"><Icon name="storefront" className="h-6 w-6" /></span>
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 className="truncate font-bold text-slate-950 group-hover:text-orange-700">{name}</h3>
-            {supplier.isVerified === true && <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-700"><Icon name="shield" className="h-3 w-3" />Verified</span>}
-          </div>
-          {supplier.businessType && <p className="mt-1 truncate text-sm text-slate-500">{supplier.businessType}</p>}
-        </div>
-      </div>
-      <div className="mt-5 grid grid-cols-2 gap-3 border-t border-slate-100 pt-4 text-sm">
-        <div><p className="text-xs text-slate-500">Products</p><p className="mt-1 font-bold text-slate-900">{supplier.productCount ?? 0}</p></div>
-        <div><p className="text-xs text-slate-500">Location</p><p className="mt-1 truncate font-bold text-slate-900">{supplier.location || "Not provided"}</p></div>
-      </div>
-      {Array.isArray(supplier.categories) && supplier.categories.length > 0 && <div className="mt-4 flex flex-wrap gap-2">{supplier.categories.slice(0, 3).map((category) => <span key={category} className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">{category}</span>)}</div>}
-    </Link>
-  );
-}
+import SupplierCard from "./supplier/SupplierCard";
 
 export default function SupplierSection({ suppliers, loading, error }) {
   return (
