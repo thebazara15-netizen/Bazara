@@ -23,6 +23,56 @@ const parseOptionalNonNegativeNumber = (value) => {
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : NaN;
 };
 
+const parsePositiveInteger = (value) => {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+};
+
+const parsePricingTiers = (value) => {
+  if (value === undefined || value === null || value === '') return [];
+
+  let tiers;
+  try {
+    tiers = typeof value === 'string' ? JSON.parse(value) : value;
+  } catch {
+    return null;
+  }
+
+  if (!Array.isArray(tiers)) return null;
+
+  const normalized = tiers.map((tier) => ({
+    minQty: Number(tier?.minQty),
+    price: Number(tier?.price)
+  }));
+  const quantities = normalized.map((tier) => tier.minQty);
+
+  if (normalized.some((tier) => !Number.isInteger(tier.minQty) || tier.minQty <= 0 ||
+      !Number.isFinite(tier.price) || tier.price <= 0) ||
+      new Set(quantities).size !== quantities.length) {
+    return null;
+  }
+
+  return normalized.sort((a, b) => a.minQty - b.minQty);
+};
+
+const normalizeProductInput = (data, currentProduct = {}) => {
+  const name = String(data.name ?? currentProduct.name ?? '').trim();
+  const description = String(data.description ?? currentProduct.description ?? '').trim() || null;
+  const category = String(data.category ?? currentProduct.category ?? '').trim() || null;
+  const moq = Number(data.moq ?? currentProduct.moq);
+  const stock = Number(data.stock ?? currentProduct.stock ?? 0);
+  const basePrice = Number(data.basePrice ?? currentProduct.basePrice);
+  const pricingTiers = parsePricingTiers(data.pricingTiers ?? currentProduct.pricingTiers ?? []);
+
+  if (!name || name.length > 255 || !Number.isInteger(moq) || moq <= 0 ||
+      !Number.isInteger(stock) || stock < 0 || !Number.isFinite(basePrice) || basePrice < 0 ||
+      pricingTiers === null || pricingTiers.some((tier) => tier.minQty < moq)) {
+    return null;
+  }
+
+  return { name, description, category, moq, stock, basePrice, pricingTiers };
+};
+
 async function cleanupRequestUploads(files) {
   await Promise.all((files || []).map(async (file) => {
     const candidatePath = path.resolve(file.path || path.join(UPLOAD_DIRECTORY, file.filename || ''));
@@ -46,31 +96,22 @@ async function cleanupRequestUploads(files) {
 // Create Product
 exports.createProduct = async (req, res) => {
   try {
-    const { name, description, category, moq, stock, basePrice } = req.body || {};
     const vendorId = req.user.id;
-
-    const parsedStock = stock === undefined || stock === '' ? 0 : Number(stock);
-    if (!name || !Number.isFinite(Number(moq)) || Number(moq) <= 0 ||
-        !Number.isFinite(Number(basePrice)) || Number(basePrice) < 0 ||
-        !Number.isFinite(parsedStock) || parsedStock < 0) {
+    const productInput = normalizeProductInput(req.body || {});
+    if (!productInput) {
       await cleanupRequestUploads(req.files);
-      return res.status(400).json({ message: 'Valid name, MOQ, stock, and base price are required' });
+      return res.status(400).json({ message: 'Enter valid product details and wholesale pricing tiers' });
     }
 
     // ✅ UPDATED: Handle multiple images
     const images = req.files ? req.files.map(file => file.filename) : [];
 
     const product = await Product.create({
-      name,
-      description,
-      category,
-      moq: Number(moq),
-      stock: parsedStock,
-      basePrice: Number(basePrice),
+      ...productInput,
       images, // ✅ store array of filenames
       vendorId, // ✅ Save vendor ID
       margin: 0,
-      finalPrice: getDisplayPrice({ basePrice, moq, pricingTiers: [], margin: 0 })
+      finalPrice: getDisplayPrice({ ...productInput, margin: 0 })
     });
 
     res.status(201).json(product);
@@ -178,11 +219,43 @@ exports.getVendorProducts = async (req, res) => {
 };
 
 // ✅ NEW: Delete vendor's own product (vendors cannot modify, only delete)
+exports.updateVendorProduct = async (req, res) => {
+  try {
+    const productId = parsePositiveInteger(req.params.id);
+    if (!productId) return res.status(400).json({ message: 'Invalid product ID' });
+
+    const product = await Product.findByPk(productId);
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+    if (Number(product.vendorId) !== Number(req.user.id)) {
+      return res.status(403).json({ message: 'You can only edit your own products' });
+    }
+
+    const productInput = normalizeProductInput(req.body || {}, product.toJSON());
+    if (!productInput) {
+      return res.status(400).json({ message: 'Enter valid product details and wholesale pricing tiers' });
+    }
+
+    await product.update({
+      ...productInput,
+      finalPrice: getDisplayPrice({ ...product.toJSON(), ...productInput })
+    }, {
+      fields: ['name', 'description', 'category', 'moq', 'stock', 'basePrice', 'pricingTiers', 'finalPrice']
+    });
+
+    return res.json(serializeProduct(req, product));
+  } catch (error) {
+    logger.error('Update vendor product error', error);
+    return res.status(500).json({ message: 'Unable to update product' });
+  }
+};
+
 exports.deleteVendorProduct = async (req, res) => {
   try {
     const vendorId = Number(req.user.id);
+    const productId = parsePositiveInteger(req.params.id);
+    if (!productId) return res.status(400).json({ message: 'Invalid product ID' });
 
-    const product = await Product.findByPk(req.params.id);
+    const product = await Product.findByPk(productId);
 
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });

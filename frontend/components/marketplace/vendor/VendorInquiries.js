@@ -1,0 +1,9 @@
+"use client";
+
+const statuses = ["NEW", "CONTACTED", "QUOTED", "CLOSED"];
+const date = (value) => value ? new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short", year: "numeric" }).format(new Date(value)) : "—";
+const buyerName = (buyer) => buyer?.companyName || [buyer?.firstName, buyer?.lastName].filter(Boolean).join(" ") || "Marketplace buyer";
+
+export default function VendorInquiries({ inquiries, busyId, onStatus }) {
+  return <section><p className="marketplace-eyebrow">Buyer leads</p><h2 className="mt-2 text-3xl font-bold">Buyer Inquiries</h2><p className="mt-3 text-sm text-slate-600">Respond to product interest without exposing unnecessary buyer contact details.</p><div className="mt-7 space-y-4">{!inquiries.length ? <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center text-sm text-slate-600">No buyer inquiries yet.</div> : inquiries.map((inquiry) => <article key={inquiry.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div className="flex flex-wrap items-start justify-between gap-3"><div><h3 className="font-bold">{inquiry.product?.name || "Product inquiry"}</h3><p className="mt-1 text-sm text-slate-600">{buyerName(inquiry.buyer)} · Quantity {inquiry.quantity} · {date(inquiry.createdAt)}</p></div><span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-bold text-orange-800">{inquiry.status}</span></div><p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-slate-600">{inquiry.message || "Buyer requested more information."}</p><label className="mt-4 block max-w-xs text-xs font-bold text-slate-700">Update status<select disabled={busyId === inquiry.id} value={inquiry.status} onChange={(event) => onStatus(inquiry.id, event.target.value)} className="mt-1 min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm">{statuses.map((status) => <option key={status}>{status}</option>)}</select></label></article>)}</div></section>;
+}
