@@ -1,409 +1,195 @@
 "use client";
 
-import { useRouter, useParams } from "next/navigation";
-import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState, useSyncExternalStore } from "react";
+import MarketplaceFooter from "../../../components/marketplace/MarketplaceFooter";
+import InquiryPanel from "../../../components/marketplace/product/InquiryPanel";
+import PriceTierTable from "../../../components/marketplace/product/PriceTierTable";
+import ProductBuyBox from "../../../components/marketplace/product/ProductBuyBox";
+import ProductGallery from "../../../components/marketplace/product/ProductGallery";
+import ProductInfo from "../../../components/marketplace/product/ProductInfo";
+import { ProductLoadingState, ProductUnavailableState } from "../../../components/marketplace/product/ProductPageState";
+import ProductSupplierCard from "../../../components/marketplace/product/ProductSupplierCard";
+import RelatedProducts from "../../../components/marketplace/product/RelatedProducts";
+import { formatPrice, getUnitPrice, hasPrice } from "../../../components/marketplace/product/pricing";
 import { decodeToken, getToken } from "../../../utils/auth";
 
-const formatPrice = (value) => `Rs. ${Number(value || 0).toFixed(2)}`;
+const API = "/api";
+const subscribeToAuthCookie = () => () => {};
+const getServerToken = () => null;
 
 export default function ProductDetails() {
-  const router = useRouter();
   const params = useParams();
-  const productId = params.id;
+  const router = useRouter();
+  const rawProductId = Array.isArray(params.id) ? params.id[0] : params.id;
+  const productId = Number(rawProductId);
+  const invalidProductId = !Number.isInteger(productId) || productId <= 0;
+  const token = useSyncExternalStore(subscribeToAuthCookie, getToken, getServerToken);
+  const viewerRole = token ? decodeToken(token)?.role || null : null;
 
   const [product, setProduct] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [relatedProducts, setRelatedProducts] = useState([]);
+  const [supplier, setSupplier] = useState(null);
+  const [pageState, setPageState] = useState("loading");
+  const [supplierLoading, setSupplierLoading] = useState(false);
   const [quantity, setQuantity] = useState(1);
+  const [cartProducts, setCartProducts] = useState(new Set());
+  const [cartLoading, setCartLoading] = useState(false);
+  const [inquiryOpen, setInquiryOpen] = useState(false);
+  const [inquiryLoading, setInquiryLoading] = useState(false);
+  const [inquiryStatus, setInquiryStatus] = useState(null);
   const [toast, setToast] = useState(null);
 
-  const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-  const token = getToken();
-  const viewerRole = token ? decodeToken(token)?.role : null;
-
-  const showToast = (message, actionLabel, action) => {
-    setToast({ message, actionLabel, action });
-    setTimeout(() => setToast(null), 5000);
-  };
-
   useEffect(() => {
-    const fetchProduct = async () => {
+    if (invalidProductId) return;
+    let cancelled = false;
+    const loadProduct = async () => {
       try {
-        setLoading(true);
-        const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
-
-        const res = await fetch(`${API}/api/products`, { headers });
-        const products = await res.json();
-
-        const found = products.find(p => p.id === Number(productId));
-        if (found) {
-          setProduct(found);
-          setQuantity(found.moq || 1);
-        } else {
-          setProduct(null);
+        const response = await fetch(`${API}/products`);
+        if (!response.ok) throw new Error("Product catalog request failed");
+        const data = await response.json();
+        const catalog = Array.isArray(data) ? data : Array.isArray(data?.products) ? data.products : [];
+        const found = catalog.find((item) => Number(item.id) === productId) || null;
+        if (cancelled) return;
+        if (!found) {
+          setPageState("not-found");
+          return;
         }
-      } catch (error) {
-        console.error("Error fetching product:", error);
-      } finally {
-        setLoading(false);
+        const moq = Math.max(1, Number(found.moq) || 1);
+        setProduct(found);
+        setQuantity(moq);
+        setRelatedProducts(found.category ? catalog.filter((item) => Number(item.id) !== productId && item.category === found.category).slice(0, 4) : []);
+        setPageState("ready");
+      } catch {
+        if (!cancelled) setPageState("error");
       }
     };
+    loadProduct();
+    return () => { cancelled = true; };
+  }, [invalidProductId, productId]);
 
-    fetchProduct();
-  }, [productId, API, token]);
+  useEffect(() => {
+    if (!product?.vendorId) return;
+    let cancelled = false;
+    setSupplierLoading(true);
+    fetch(`${API}/suppliers/${product.vendorId}`)
+      .then((response) => response.ok ? response.json() : null)
+      .then((data) => { if (!cancelled) setSupplier(data?.id ? data : null); })
+      .catch(() => { if (!cancelled) setSupplier(null); })
+      .finally(() => { if (!cancelled) setSupplierLoading(false); });
+    return () => { cancelled = true; };
+  }, [product?.vendorId]);
 
-  const addToCart = async () => {
-    if (!token) {
-      showToast("Please login first", "LOGIN", () => router.push("/login"));
+  useEffect(() => {
+    if (!token || viewerRole !== "CLIENT") return;
+    let cancelled = false;
+    fetch(`${API}/cart`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((response) => response.ok ? response.json() : [])
+      .then((items) => { if (!cancelled && Array.isArray(items)) setCartProducts(new Set(items.map((item) => item.productId))); })
+      .catch(() => {})
+    return () => { cancelled = true; };
+  }, [token, viewerRole]);
+
+  const showToast = (message, type = "success", actionLabel = null, action = null) => {
+    setToast({ message, type, actionLabel, action });
+    window.setTimeout(() => setToast(null), 5000);
+  };
+
+  const addToCart = async (targetProduct = product, requestedQuantity = quantity) => {
+    if (!token || viewerRole !== "CLIENT") {
+      router.push("/login");
       return;
     }
-
-    const user = decodeToken(token);
-    if (!user || user.role !== "CLIENT") {
-      showToast("Only client accounts can place orders", "OK", () => setToast(null));
-      return;
-    }
-
+    const minimum = Math.max(1, Number(targetProduct.moq) || 1);
+    const validQuantity = Math.max(minimum, Number(requestedQuantity) || minimum);
+    setCartLoading(true);
     try {
-      const res = await fetch(`${API}/api/cart`, {
+      const response = await fetch(`${API}/cart`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          productId: product.id,
-          quantity: Number(quantity)
-        })
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ productId: targetProduct.id, quantity: validQuantity }),
       });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        showToast(data.message || "Error adding to cart", "OK", () => setToast(null));
+      const data = await response.json();
+      if (!response.ok) {
+        showToast(data.message || "This product could not be added to the cart.", "error");
         return;
       }
-
+      setCartProducts((current) => new Set([...current, targetProduct.id]));
       window.dispatchEvent(new Event("cart:changed"));
-      showToast("Item added to cart", "GO TO CART", () => router.push("/cart"));
-    } catch (error) {
-      console.error(error);
-      showToast("Error adding to cart", "OK", () => setToast(null));
+      showToast("Product added to cart.", "success", "View cart", () => router.push("/cart"));
+    } catch {
+      showToast("This product could not be added to the cart.", "error");
+    } finally {
+      setCartLoading(false);
     }
   };
 
-  const contactSupplier = async () => {
-    if (!token) {
-      showToast("Please login first", "LOGIN", () => router.push("/login"));
-      return;
+  const sendInquiry = async ({ quantity: inquiryQuantity, message }) => {
+    if (!token || viewerRole !== "CLIENT") {
+      router.push("/login");
+      return false;
     }
-
-    const user = decodeToken(token);
-    if (!user || user.role !== "CLIENT") {
-      showToast("Only client accounts can contact suppliers", "OK", () => setToast(null));
-      return;
-    }
-
+    setInquiryLoading(true);
+    setInquiryStatus(null);
     try {
-      const res = await fetch(`${API}/api/inquiries`, {
+      const response = await fetch(`${API}/inquiries`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          productId: product.id,
-          quantity: Number(quantity),
-          message: `Interested in ${product.name}. Please share best price and delivery details.`
-        })
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ productId: product.id, quantity: Number(inquiryQuantity), message }),
       });
-      const data = await res.json();
-      if (!res.ok) {
-        showToast(data.message || "Unable to contact supplier", "OK", () => setToast(null));
-        return;
+      const data = await response.json();
+      if (!response.ok) {
+        setInquiryStatus({ type: "error", message: data.message || "The enquiry could not be sent." });
+        return false;
       }
-
-      showToast("Inquiry sent to supplier", "OK", () => setToast(null));
-    } catch (error) {
-      console.error(error);
-      showToast("Unable to contact supplier", "OK", () => setToast(null));
+      setInquiryStatus({ type: "success", message: "Your enquiry was sent to the supplier." });
+      showToast("Enquiry sent successfully.");
+      return true;
+    } catch {
+      setInquiryStatus({ type: "error", message: "The enquiry could not be sent right now." });
+      return false;
+    } finally {
+      setInquiryLoading(false);
     }
   };
 
-  const nextImage = () => {
-    if (product?.images?.length > 1) {
-      setCurrentImageIndex((prev) => (prev + 1) % product.images.length);
-    }
-  };
+  if (invalidProductId) return <ProductUnavailableState type="invalid" />;
+  if (pageState === "loading") return <ProductLoadingState />;
+  if (pageState === "error") return <ProductUnavailableState type="error" />;
+  if (pageState === "not-found" || !product) return <ProductUnavailableState type="not-found" />;
 
-  const prevImage = () => {
-    if (product?.images?.length > 1) {
-      setCurrentImageIndex((prev) => (prev - 1 + product.images.length) % product.images.length);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#0d1422] px-4 py-16 text-white">
-        <div className="mx-auto max-w-6xl rounded-lg border border-white/10 bg-white/[0.03] px-6 py-16 text-center">
-          <p className="text-sm font-semibold text-slate-300">Loading product details...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!product) {
-    return (
-      <div className="min-h-screen bg-[#0d1422] px-4 py-16 text-white">
-        <div className="mx-auto max-w-xl rounded-lg border border-white/10 bg-white/[0.03] px-6 py-16 text-center">
-          <p className="mb-6 text-sm font-semibold text-slate-300">Product not found</p>
-          <Link
-            href="/#featured-products"
-            className="inline-flex rounded-full bg-orange-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-orange-700"
-          >
-            Back to Products
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  const images = product.images || [];
-  const activeImage = images[currentImageIndex] || "/industrial.jpg";
-  const moq = Number(product.moq || 1);
-  const stock = Number(product.stock || 0);
-  const estimatedTotal = Number(product.finalPrice || 0) * Number(quantity || 0);
+  const moq = Math.max(1, Number(product.moq) || 1);
+  const currentUnitPrice = getUnitPrice(product, quantity);
+  const supplierName = supplier?.companyName || [supplier?.firstName, supplier?.lastName].filter(Boolean).join(" ") || null;
 
   return (
-    <main className="min-h-screen bg-[#0d1422] text-white">
-      <div className="mx-auto max-w-7xl px-4 py-8 md:px-8 md:py-10">
-        <Link
-          href="/#featured-products"
-          className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-semibold text-sky-300 transition hover:border-sky-400/50 hover:bg-sky-400/10"
-        >
-          <span aria-hidden="true">←</span>
-          Back to Products
-        </Link>
+    <main className="min-h-screen overflow-x-hidden bg-slate-50 text-slate-900">
+      <div className="marketplace-container py-5 sm:py-8">
+        <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-2 text-xs text-slate-500"><Link href="/" className="hover:text-orange-700">Marketplace</Link><span aria-hidden="true">/</span>{product.category && <><Link href={`/?search=${encodeURIComponent(product.category)}#featured-products`} className="hover:text-orange-700">{product.category}</Link><span aria-hidden="true">/</span></>}<span className="max-w-64 truncate text-slate-700" aria-current="page">{product.name}</span></nav>
 
-        <div className="grid gap-8 lg:grid-cols-[0.92fr_1.08fr] lg:items-start">
-          <section className="rounded-lg border border-white/10 bg-white/[0.04] p-4 shadow-[0_24px_80px_rgba(0,0,0,0.22)] md:p-5">
-            <div className="relative flex h-[320px] items-center justify-center overflow-hidden rounded-lg bg-white md:h-[420px]">
-              <img
-                src={activeImage}
-                alt={product.name}
-                className="h-full w-full object-contain p-4"
-              />
-
-              {images.length > 1 && (
-                <>
-                  <button
-                    onClick={prevImage}
-                    aria-label="Previous product image"
-                    className="absolute left-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-gray-950/70 text-lg font-bold text-white transition hover:bg-orange-600"
-                  >
-                    ‹
-                  </button>
-                  <button
-                    onClick={nextImage}
-                    aria-label="Next product image"
-                    className="absolute right-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-gray-950/70 text-lg font-bold text-white transition hover:bg-orange-600"
-                  >
-                    ›
-                  </button>
-                </>
-              )}
-            </div>
-
-            {images.length > 1 && (
-              <div className="mt-4 flex gap-3 overflow-x-auto pb-1">
-                {images.map((img, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setCurrentImageIndex(idx)}
-                    className={`h-16 w-16 flex-shrink-0 overflow-hidden rounded-md border bg-white transition ${
-                      idx === currentImageIndex
-                        ? "border-orange-500 ring-2 ring-orange-500/40"
-                        : "border-white/10 hover:border-white/40"
-                    }`}
-                  >
-                    <img src={img} alt={`View ${idx + 1}`} className="h-full w-full object-cover" />
-                  </button>
-                ))}
-              </div>
-            )}
-
-            <div className="mt-5 grid grid-cols-3 gap-3 text-center">
-              <div className="rounded-md border border-white/10 bg-white/[0.04] px-3 py-3">
-                <p className="text-[11px] uppercase tracking-wide text-slate-400">MOQ</p>
-                <p className="mt-1 text-sm font-bold">{moq}</p>
-              </div>
-              <div className="rounded-md border border-white/10 bg-white/[0.04] px-3 py-3">
-                <p className="text-[11px] uppercase tracking-wide text-slate-400">Stock</p>
-                <p className="mt-1 text-sm font-bold">{stock}</p>
-              </div>
-              <div className="rounded-md border border-white/10 bg-white/[0.04] px-3 py-3">
-                <p className="text-[11px] uppercase tracking-wide text-slate-400">Vendor</p>
-                <p className="mt-1 text-sm font-bold">Verified</p>
-              </div>
-            </div>
+        <div className="mt-5 grid min-w-0 gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.08fr)] lg:items-start">
+          <ProductGallery key={product.id} productName={product.name} images={product.images} />
+          <section className="min-w-0">
+            {product.category && <Link href={`/?search=${encodeURIComponent(product.category)}#featured-products`} className="marketplace-eyebrow hover:text-orange-800">{product.category}</Link>}
+            <h1 className="mt-3 text-3xl font-bold leading-tight tracking-[-0.03em] text-slate-950 sm:text-4xl">{product.name}</h1>
+            <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-slate-600">{supplierName && product.vendorId && <Link href={`/suppliers/${product.vendorId}`} className="font-bold text-slate-800 hover:text-orange-700">Sold by {supplierName}</Link>}{Number.isFinite(Number(product.moq)) && <span>MOQ: <strong className="text-slate-900">{product.moq} units</strong></span>}{Number.isFinite(Number(product.stock)) && <span>Recorded availability: <strong className="text-slate-900">{product.stock} units</strong></span>}</div>
+            <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 sm:p-6"><p className="text-xs font-semibold text-slate-500">Current unit price</p>{hasPrice(currentUnitPrice) ? <p className="mt-1 text-3xl font-bold text-slate-950">{formatPrice(currentUnitPrice)}</p> : <p className="mt-2 text-xl font-bold text-orange-700">Contact Supplier for Price</p>}{product.description && <p className="mt-4 line-clamp-3 text-sm leading-6 text-slate-600">{product.description}</p>}</div>
+            <div className="mt-5"><ProductBuyBox product={product} quantity={quantity} onQuantityChange={setQuantity} viewerRole={viewerRole} cartLoading={cartLoading} onAddToCart={() => addToCart()} onOpenInquiry={() => { setInquiryStatus(null); setInquiryOpen(true); }} /></div>
           </section>
+        </div>
 
-          <section className="space-y-5">
-            <div className="rounded-lg border border-white/10 bg-white/[0.04] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.2)] md:p-6">
-              <div className="flex flex-wrap gap-2">
-                <span className="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-bold text-emerald-300">Ready to ship</span>
-                <span className="rounded-full bg-orange-400/10 px-3 py-1 text-xs font-bold text-orange-300">Bulk pricing</span>
-                <span className="rounded-full bg-sky-400/10 px-3 py-1 text-xs font-bold text-sky-300">Secure order</span>
-              </div>
-
-              <h1 className="mt-4 text-2xl font-extrabold leading-tight text-white md:text-3xl">
-                {product.name}
-              </h1>
-              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-300">
-                <span>Category: <span className="font-semibold text-white">{product.category || "Not specified"}</span></span>
-                <span className="text-amber-300">4.5 rating</span>
-                <span>123 reviews</span>
-                {product.vendorId && (
-                  <Link href={`/suppliers/${product.vendorId}`} className="font-semibold text-sky-300 hover:text-sky-200">
-                    View supplier
-                  </Link>
-                )}
-              </div>
-
-              <div className="mt-5 rounded-lg border border-orange-500/30 bg-gradient-to-br from-orange-500/15 to-red-500/10 p-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-orange-100/80">Client price</p>
-                <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
-                  <div>
-                    <p className="text-3xl font-extrabold text-orange-300">{formatPrice(product.finalPrice)}</p>
-                    <p className="mt-1 text-sm text-slate-300">Vendor price: {formatPrice(product.basePrice)}</p>
-                  </div>
-                  <p className="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-bold text-emerald-300">
-                    Buyer price
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-lg border border-white/10 bg-white/[0.04] p-5 md:p-6">
-              <div className="mb-4 flex items-center justify-between gap-3">
-                <h2 className="text-base font-bold">Price by Quantity</h2>
-                <span className="text-xs font-semibold text-slate-400">Best value at higher volume</span>
-              </div>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {[
-                  ["2 - 99 pieces", product.basePrice],
-                  ["100 - 999 pieces", product.basePrice * 0.95],
-                  ["1,000 - 9,999 pieces", product.basePrice * 0.9],
-                  [">= 10,000 pieces", product.basePrice * 0.85]
-                ].map(([label, price]) => (
-                  <div key={label} className="rounded-md border border-white/10 bg-[#172234] px-4 py-3 transition hover:border-orange-400/50">
-                    <p className="text-xs text-slate-400">{label}</p>
-                    <p className="mt-1 text-base font-bold">{formatPrice(price)}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="grid gap-5 xl:grid-cols-[1fr_330px]">
-              <div className="rounded-lg border border-white/10 bg-white/[0.04] p-5 md:p-6">
-                <h2 className="text-base font-bold">Quantity</h2>
-                <div className="mt-4 flex items-center rounded-full border border-white/10 bg-[#172234] p-1">
-                  <button
-                    onClick={() => setQuantity(Math.max(moq, quantity - moq))}
-                    className="flex h-10 w-10 items-center justify-center rounded-full text-xl font-bold transition hover:bg-white/10"
-                  >
-                    −
-                  </button>
-                  <input
-                    type="number"
-                    value={quantity}
-                    onChange={(e) => setQuantity(Math.max(moq, Number(e.target.value) || moq))}
-                    min={moq}
-                    className="min-w-0 flex-1 bg-transparent text-center text-base font-bold text-white outline-none"
-                  />
-                  <button
-                    onClick={() => setQuantity(quantity + moq)}
-                    className="flex h-10 w-10 items-center justify-center rounded-full text-xl font-bold transition hover:bg-white/10"
-                  >
-                    +
-                  </button>
-                </div>
-                <div className="mt-4 flex items-center justify-between text-sm">
-                  <span className="text-slate-400">Minimum order</span>
-                  <span className="font-semibold">{moq} units</span>
-                </div>
-                <div className="mt-2 flex items-center justify-between text-sm">
-                  <span className="text-slate-400">Estimated item total</span>
-                  <span className="font-bold text-orange-300">{formatPrice(estimatedTotal)}</span>
-                </div>
-              </div>
-
-              <div className="rounded-lg border border-white/10 bg-white/[0.04] p-5 md:p-6">
-                <h2 className="text-base font-bold">Delivery</h2>
-                <div className="mt-4 space-y-3 text-sm">
-                  <div className="flex justify-between gap-4">
-                    <span className="text-slate-400">Method</span>
-                    <span className="font-semibold">Standard freight</span>
-                  </div>
-                  <div className="flex justify-between gap-4">
-                    <span className="text-slate-400">Estimate</span>
-                    <span className="font-semibold">14 - 28 days</span>
-                  </div>
-                  <div className="flex justify-between gap-4">
-                    <span className="text-slate-400">Protection</span>
-                    <span className="font-semibold text-emerald-300">Included</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-lg border border-white/10 bg-white/[0.04] p-5 md:p-6">
-              <h2 className="text-base font-bold">Product Details</h2>
-              <p className="mt-3 text-sm leading-6 text-slate-300">
-                {product.description || "No description provided."}
-              </p>
-            </div>
-
-            <div className="sticky bottom-4 z-20 rounded-lg border border-white/10 bg-[#111a2a]/95 p-3 shadow-[0_20px_70px_rgba(0,0,0,0.35)] backdrop-blur md:static md:bg-transparent md:p-0 md:shadow-none">
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <button
-                  onClick={addToCart}
-                  className="flex-1 rounded-full bg-orange-600 px-6 py-3 text-sm font-extrabold text-white shadow-lg shadow-orange-600/20 transition hover:bg-orange-700"
-                >
-                  Add to Cart
-                </button>
-                {token && viewerRole === "CLIENT" && (
-                  <button
-                    onClick={contactSupplier}
-                    className="flex-1 rounded-full border border-white/15 bg-white/[0.04] px-6 py-3 text-sm font-extrabold text-white transition hover:border-sky-400/50 hover:bg-sky-400/10"
-                  >
-                    Contact Supplier
-                  </button>
-                )}
-                <button
-                  onClick={() => router.push("/cart")}
-                  className="flex-1 rounded-full border border-white/15 bg-white/[0.04] px-6 py-3 text-sm font-extrabold text-white transition hover:border-emerald-400/50 hover:bg-emerald-400/10"
-                >
-                  Go to Cart
-                </button>
-              </div>
-            </div>
-          </section>
+        <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
+          <div className="space-y-6"><PriceTierTable product={product} /><ProductInfo product={product} /></div>
+          <ProductSupplierCard supplier={supplier} vendorId={product.vendorId} loading={supplierLoading} />
         </div>
       </div>
 
-      {toast && (
-        <div className="fixed bottom-5 right-5 z-50 max-w-sm rounded-lg border border-white/10 bg-[#111a2a] p-4 shadow-xl">
-          <p className="mb-3 text-sm font-semibold text-white">{toast.message}</p>
-          <button
-            onClick={toast.action}
-            className="text-sm font-bold text-orange-300 transition hover:text-orange-200"
-          >
-            {toast.actionLabel} →
-          </button>
-        </div>
-      )}
+      <RelatedProducts products={relatedProducts} viewerRole={viewerRole} cartProducts={cartProducts} onAddToCart={(relatedProduct) => addToCart(relatedProduct, relatedProduct.moq)} />
+      <MarketplaceFooter />
+
+      {inquiryOpen && <InquiryPanel productName={product.name} initialQuantity={quantity} moq={moq} open onClose={() => setInquiryOpen(false)} onSubmit={sendInquiry} submitting={inquiryLoading} status={inquiryStatus} />}
+      {toast && <div role="status" className={`fixed bottom-5 left-1/2 z-[80] w-[min(92vw,390px)] -translate-x-1/2 rounded-2xl px-5 py-4 text-white shadow-2xl ${toast.type === "error" ? "bg-rose-800" : "bg-slate-950"}`}><div className="flex items-center justify-between gap-4"><p className="text-sm font-medium">{toast.message}</p>{toast.actionLabel && <button type="button" onClick={toast.action} className="shrink-0 rounded-lg bg-orange-600 px-3 py-2 text-xs font-bold hover:bg-orange-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">{toast.actionLabel}</button>}</div></div>}
     </main>
   );
 }
