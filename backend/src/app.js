@@ -88,6 +88,13 @@ try {
 }
 
 try {
+  const wishlistRoutes = require('./services/wishlist/routes/wishlist.routes');
+  app.use('/api/wishlist', wishlistRoutes);
+} catch (e) {
+  logger.error('wishlistRoutes error', e);
+}
+
+try {
   const supplierRoutes = require('./services/supplier/routes/supplier.routes');
   app.use('/api/suppliers', supplierRoutes);
 } catch (e) {
