@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Icon from "./Icons";
+import WishlistButton from "./wishlist/WishlistButton";
 
 function getPrice(product) {
   const value = product.finalPrice ?? product.basePrice;
@@ -14,7 +15,7 @@ export default function ProductCard({ product, viewerRole, inCart, onAddToCart }
   const image = Array.isArray(product.images) ? product.images.find(Boolean) : null;
 
   return (
-    <article className="group flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-xl hover:shadow-slate-200/60">
+    <article className="group relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-xl hover:shadow-slate-200/60">
       <Link href={`/product/${product.id}`} className="relative block aspect-[4/3] overflow-hidden bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-orange-600">
         {image ? (
           // Product images can originate from the configured API host.
@@ -28,6 +29,7 @@ export default function ProductCard({ product, viewerRole, inCart, onAddToCart }
         )}
         {product.category && <span className="absolute left-3 top-3 max-w-[calc(100%-1.5rem)] truncate rounded-full border border-white/60 bg-white/90 px-3 py-1 text-[11px] font-bold text-slate-700 shadow-sm backdrop-blur">{product.category}</span>}
       </Link>
+      <span className="absolute right-3 top-3 z-10"><WishlistButton product={product} viewerRole={viewerRole} compact /></span>
 
       <div className="flex flex-1 flex-col p-4 sm:p-5">
         <Link href={`/product/${product.id}`} className="focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600">

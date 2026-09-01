@@ -72,7 +72,7 @@ function NavbarContent() {
     router.refresh();
   };
 
-  const dashboard = user?.role === "ADMIN" ? { label: "Admin dashboard", href: "/admin" } : user?.role === "VENDOR" ? { label: "Vendor dashboard", href: "/vendor" } : null;
+  const dashboard = user?.role === "ADMIN" ? { label: "Admin dashboard", href: "/admin" } : user?.role === "VENDOR" ? { label: "Vendor dashboard", href: "/vendor" } : user?.role === "CLIENT" ? { label: "My account", href: "/account" } : null;
   const userName = user?.name || [user?.firstName, user?.lastName].filter(Boolean).join(" ") || user?.email?.split("@")[0] || "Account";
 
   return (

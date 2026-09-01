@@ -1,0 +1,3 @@
+import Link from "next/link";
+import BuyerRfqList from "../rfq/BuyerRfqList";
+export default function AccountRfqs({ rfqs, decisionId, onDecision }) { return <section><p className="marketplace-eyebrow">Sourcing requirements</p><h2 className="mt-2 text-3xl font-bold">My RFQs</h2><p className="mt-3 text-sm text-slate-600">Review your requirements and supplier quotation activity.</p><div className="mt-7">{rfqs.length ? <BuyerRfqList rfqs={rfqs} decisionId={decisionId} onDecision={onDecision}/> : <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center"><h3 className="font-bold">No RFQs posted</h3><Link href="/rfq" className="marketplace-button-primary mt-5">Post RFQ</Link></div>}</div></section>; }

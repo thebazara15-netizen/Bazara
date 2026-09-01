@@ -14,6 +14,7 @@ import ProductSupplierCard from "../../../components/marketplace/product/Product
 import RelatedProducts from "../../../components/marketplace/product/RelatedProducts";
 import { formatPrice, getUnitPrice, hasPrice } from "../../../components/marketplace/product/pricing";
 import { decodeToken, getToken } from "../../../utils/auth";
+import WishlistButton from "../../../components/marketplace/wishlist/WishlistButton";
 
 const API = "/api";
 const subscribeToAuthCookie = () => () => {};
@@ -179,7 +180,7 @@ export default function ProductDetails() {
           <ProductGallery key={product.id} productName={product.name} images={product.images} />
           <section className="min-w-0">
             {product.category && <Link href={`/products?category=${encodeURIComponent(product.category)}`} className="marketplace-eyebrow hover:text-orange-800">{product.category}</Link>}
-            <h1 className="mt-3 text-3xl font-bold leading-tight tracking-[-0.03em] text-slate-950 sm:text-4xl">{product.name}</h1>
+            <div className="mt-3 flex flex-wrap items-start justify-between gap-4"><h1 className="min-w-0 flex-1 text-3xl font-bold leading-tight tracking-[-0.03em] text-slate-950 sm:text-4xl">{product.name}</h1><WishlistButton product={product} viewerRole={viewerRole}/></div>
             <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-slate-600">{supplierName && product.vendorId && <Link href={`/suppliers/${product.vendorId}`} className="font-bold text-slate-800 hover:text-orange-700">Sold by {supplierName}</Link>}{Number.isFinite(Number(product.moq)) && <span>MOQ: <strong className="text-slate-900">{product.moq} units</strong></span>}{Number.isFinite(Number(product.stock)) && <span>Recorded availability: <strong className="text-slate-900">{product.stock} units</strong></span>}</div>
             <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 sm:p-6"><p className="text-xs font-semibold text-slate-500">Current unit price</p>{hasPrice(currentUnitPrice) ? <p className="mt-1 text-3xl font-bold text-slate-950">{formatPrice(currentUnitPrice)}</p> : <p className="mt-2 text-xl font-bold text-orange-700">Contact Supplier for Price</p>}{product.description && <p className="mt-4 line-clamp-3 text-sm leading-6 text-slate-600">{product.description}</p>}</div>
             <div className="mt-5"><ProductBuyBox product={product} quantity={quantity} onQuantityChange={setQuantity} viewerRole={viewerRole} cartLoading={cartLoading} onAddToCart={() => addToCart()} onOpenInquiry={() => { setInquiryStatus(null); setInquiryOpen(true); }} /></div>

@@ -95,6 +95,13 @@ try {
 }
 
 try {
+  const accountRoutes = require('./services/account/routes/account.routes');
+  app.use('/api/account', accountRoutes);
+} catch (e) {
+  logger.error('accountRoutes error', e);
+}
+
+try {
   const supplierRoutes = require('./services/supplier/routes/supplier.routes');
   app.use('/api/suppliers', supplierRoutes);
 } catch (e) {
