@@ -10,6 +10,9 @@ import ProductGrid from "../components/marketplace/ProductGrid";
 import RfqBanner from "../components/marketplace/RfqBanner";
 import SectionHeader from "../components/marketplace/SectionHeader";
 import SupplierSection from "../components/marketplace/SupplierSection";
+import TrendingSection from "../components/marketplace/TrendingSection";
+import VisualSearchSection from "../components/marketplace/VisualSearchSection";
+import IndiaSourcingSection from "../components/marketplace/IndiaSourcingSection";
 import ValueSection from "../components/marketplace/ValueSection";
 
 const API = "/api";
@@ -35,6 +38,8 @@ function HomeContent() {
   const [cartProducts, setCartProducts] = useState(new Set());
   const [toast, setToast] = useState(null);
   const totalPages = Math.max(1, Math.ceil(totalProducts / PAGE_SIZE));
+  const featuredProducts = searchQuery ? products : products.slice(5);
+  const showFeaturedProducts = Boolean(searchQuery || productsLoading || productsError || featuredProducts.length);
 
   useEffect(() => {
     let cancelled = false;
@@ -140,19 +145,23 @@ function HomeContent() {
     <main className="min-h-screen overflow-x-hidden bg-slate-50 text-slate-900">
       <div className="marketplace-container pt-5 sm:pt-7"><Hero /><CategorySection products={products} /></div>
 
-      <section id="featured-products" className="scroll-mt-44 border-t border-slate-200 bg-white py-14 sm:py-16">
+      {!searchQuery && <TrendingSection products={products} loading={productsLoading} error={productsError} viewerRole={viewerRole} cartProducts={cartProducts} onAddToCart={addToCart} />}
+
+      {showFeaturedProducts && <section id="featured-products" className="scroll-mt-44 border-t border-slate-200 bg-white py-14 sm:py-16">
         <div className="marketplace-container">
           <SectionHeader
             eyebrow={searchQuery ? "Search results" : "Product marketplace"}
             title={searchQuery ? `Results for “${searchQuery}”` : "Featured products"}
             description={searchQuery ? `${totalProducts} matching product${totalProducts === 1 ? "" : "s"} found.` : "Explore products currently available from marketplace suppliers."}
           />
-          <div className="mt-7"><ProductGrid products={products} loading={productsLoading} error={productsError} searchQuery={searchQuery} viewerRole={viewerRole} cartProducts={cartProducts} onAddToCart={addToCart} onClear={() => router.push("/#featured-products")} /></div>
+          <div className="mt-7"><ProductGrid products={featuredProducts} loading={productsLoading} error={productsError} searchQuery={searchQuery} viewerRole={viewerRole} cartProducts={cartProducts} onAddToCart={addToCart} onClear={() => router.push("/#featured-products")} /></div>
           {totalPages > 1 && <nav aria-label="Product pagination" className="mt-8 flex items-center justify-center gap-3"><button type="button" disabled={page <= 1} onClick={() => changePage(page - 1)} className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40">Previous</button><span className="text-sm text-slate-600">Page {page} of {totalPages}</span><button type="button" disabled={page >= totalPages} onClick={() => changePage(page + 1)} className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40">Next</button></nav>}
         </div>
-      </section>
+      </section>}
 
+      <VisualSearchSection viewerRole={viewerRole} />
       <SupplierSection suppliers={suppliers} loading={suppliersLoading} error={suppliersError} />
+      <IndiaSourcingSection viewerRole={viewerRole} />
       <div className="marketplace-container"><ValueSection /></div>
       <RfqBanner />
       <MarketplaceFooter />

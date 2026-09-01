@@ -5,12 +5,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { clearTokenCookie, decodeToken, getToken } from "../utils/auth";
 import Icon from "./marketplace/Icons";
+import MarketplaceMegaMenu from "./marketplace/MarketplaceMegaMenu";
 
 const subscribeToAuthCookie = () => () => {};
 const getServerToken = () => null;
 const primaryLinks = [
-  { label: "All categories", href: "/#categories", icon: "categories" },
-  { label: "Featured products", href: "/#featured-products" },
+  { label: "Trending products", href: "/#trending-products" },
   { label: "Suppliers", href: "/suppliers" },
   { label: "Post requirement", href: "/rfq" },
   { label: "Wholesale sourcing", href: "/#wholesale-deals" },
@@ -22,6 +22,9 @@ function NavbarContent() {
   const accountRef = useRef(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [categoriesOpen, setCategoriesOpen] = useState(false);
+  const [mobileCategoriesOpen, setMobileCategoriesOpen] = useState(false);
+  const [searchType, setSearchType] = useState("products");
   const [cartCount, setCartCount] = useState(0);
   const token = useSyncExternalStore(subscribeToAuthCookie, getToken, getServerToken);
   const user = token ? decodeToken(token) : null;
@@ -62,7 +65,8 @@ function NavbarContent() {
   const handleSearch = (event) => {
     event.preventDefault();
     const query = String(new FormData(event.currentTarget).get("q") || "").trim();
-    router.push(query ? `/products?q=${encodeURIComponent(query)}` : "/products");
+    const destination = searchType === "suppliers" ? "/suppliers" : "/products";
+    router.push(query ? `${destination}?q=${encodeURIComponent(query)}` : destination);
   };
 
   const handleLogout = () => {
@@ -97,10 +101,14 @@ function NavbarContent() {
         </Link>
 
         <form onSubmit={handleSearch} role="search" className="order-3 w-full lg:order-none lg:flex-1">
-          <label htmlFor="marketplace-search" className="sr-only">Search products and categories</label>
+          <div role="tablist" aria-label="Marketplace search type" className="mb-1 flex gap-4 px-1 text-xs font-bold">
+            {["products", "suppliers"].map((type) => <button key={type} type="button" role="tab" aria-selected={searchType === type} onClick={() => setSearchType(type)} className={`border-b-2 pb-1 capitalize focus-visible:outline-2 focus-visible:outline-orange-600 ${searchType === type ? "border-orange-600 text-orange-700" : "border-transparent text-slate-500 hover:text-slate-800"}`}>{type}</button>)}
+          </div>
+          <label htmlFor="marketplace-search" className="sr-only">Search {searchType}</label>
           <div className="flex h-12 overflow-hidden rounded-xl border-2 border-slate-900 bg-white transition focus-within:border-orange-600 focus-within:ring-2 focus-within:ring-orange-100">
             <input key={searchParams.get("q") || ""} id="marketplace-search" name="q" type="search" defaultValue={searchParams.get("q") || ""} placeholder="Search products, machinery, components..." className="min-w-0 flex-1 px-4 text-sm outline-none placeholder:text-slate-400" />
-            <button type="submit" className="inline-flex w-14 items-center justify-center bg-slate-950 text-white transition hover:bg-orange-700 focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-white" aria-label="Search products"><Icon name="search" /></button>
+            <Link href="/#visual-search" aria-label="Visual Search coming soon" className="inline-flex w-11 items-center justify-center border-l border-slate-200 text-slate-500 hover:bg-orange-50 hover:text-orange-700 focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-orange-600"><Icon name="package" /></Link>
+            <button type="submit" className="inline-flex w-14 items-center justify-center bg-slate-950 text-white transition hover:bg-orange-700 focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-white" aria-label={`Search ${searchType}`}><Icon name="search" /></button>
           </div>
         </form>
 
@@ -121,9 +129,11 @@ function NavbarContent() {
       </div>
 
       <nav aria-label="Marketplace navigation" className="hidden border-t border-slate-200 lg:block">
-        <div className="marketplace-container flex h-11 items-center gap-7 overflow-x-auto">{primaryLinks.map((link) => <Link key={link.label} href={link.href} className="inline-flex shrink-0 items-center gap-2 text-sm font-semibold text-slate-700 hover:text-orange-700">{link.icon && <Icon name={link.icon} className="h-4 w-4" />}{link.label}</Link>)}</div>
+        <div className="marketplace-container flex h-11 items-center gap-7 overflow-x-auto"><button type="button" onClick={() => setCategoriesOpen((value) => !value)} onMouseEnter={() => setCategoriesOpen(true)} aria-expanded={categoriesOpen} aria-controls="category-mega-menu" className="inline-flex shrink-0 items-center gap-2 text-sm font-semibold text-slate-700 hover:text-orange-700 focus-visible:outline-2 focus-visible:outline-orange-600"><Icon name="categories" className="h-4 w-4" />All categories</button>{primaryLinks.map((link) => <Link key={link.label} href={link.href} className="inline-flex shrink-0 items-center gap-2 text-sm font-semibold text-slate-700 hover:text-orange-700">{link.label}</Link>)}</div>
       </nav>
-      {mobileOpen && <nav aria-label="Mobile marketplace navigation" className="border-t border-slate-200 bg-white px-4 py-3 lg:hidden"><div className="mx-auto grid max-w-7xl gap-1">{primaryLinks.map((link) => <Link key={link.label} href={link.href} onClick={() => setMobileOpen(false)} className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-orange-700">{link.icon && <Icon name={link.icon} className="h-4 w-4" />}{link.label}</Link>)}</div></nav>}
+      {mobileOpen && <nav aria-label="Mobile marketplace navigation" className="border-t border-slate-200 bg-white px-4 py-3 lg:hidden"><div className="mx-auto grid max-w-7xl gap-1"><button type="button" onClick={() => { setMobileOpen(false); setMobileCategoriesOpen(true); }} aria-expanded={mobileCategoriesOpen} aria-controls="mobile-category-panel" className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-left text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-orange-700"><Icon name="categories" className="h-4 w-4" />All categories</button>{primaryLinks.map((link) => <Link key={link.label} href={link.href} onClick={() => setMobileOpen(false)} className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-orange-700">{link.label}</Link>)}</div></nav>}
+      <MarketplaceMegaMenu open={categoriesOpen} onClose={() => setCategoriesOpen(false)} viewerRole={user?.role} />
+      <MarketplaceMegaMenu open={mobileCategoriesOpen} onClose={() => setMobileCategoriesOpen(false)} viewerRole={user?.role} mobile />
     </header>
   );
 }
