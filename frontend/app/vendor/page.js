@@ -13,7 +13,10 @@ export default function VendorDashboard() {
   const [currentImageIndex, setCurrentImageIndex] = useState({});
   const [inquiries, setInquiries] = useState([]);
   const [rfqs, setRfqs] = useState([]);
+  const [vendorQuotes, setVendorQuotes] = useState([]);
   const [quoteInputs, setQuoteInputs] = useState({});
+  const [quoteFeedback, setQuoteFeedback] = useState(null);
+  const [submittingQuoteId, setSubmittingQuoteId] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null); // ✅ NEW: Track open dropdown menu
 
   const [form, setForm] = useState({
@@ -69,22 +72,31 @@ export default function VendorDashboard() {
 
   const fetchLeads = async (token) => {
     try {
-      const [inquiryRes, rfqRes] = await Promise.all([
+      const [inquiryRes, rfqRes, quoteRes] = await Promise.all([
         fetch(`${API}/api/inquiries/vendor`, {
           headers: { Authorization: `Bearer ${token}` }
         }),
         fetch(`${API}/api/rfqs`, {
           headers: { Authorization: `Bearer ${token}` }
+        }),
+        fetch(`${API}/api/rfqs/vendor/quotes`, {
+          headers: { Authorization: `Bearer ${token}` }
         })
       ]);
       const inquiryData = await inquiryRes.json();
       const rfqData = await rfqRes.json();
+      const quoteData = await quoteRes.json();
       setInquiries(Array.isArray(inquiryData) ? inquiryData : []);
       setRfqs(Array.isArray(rfqData) ? rfqData : []);
+      setVendorQuotes(Array.isArray(quoteData) ? quoteData : []);
+      if (!quoteRes.ok) {
+        setQuoteFeedback({ type: "error", message: quoteData.message || "Unable to load quotation activity" });
+      }
     } catch (error) {
       console.error(error);
       setInquiries([]);
       setRfqs([]);
+      setVendorQuotes([]);
     }
   };
 
@@ -268,11 +280,19 @@ export default function VendorDashboard() {
     const token = getToken();
     const input = quoteInputs[rfqId] || {};
 
-    if (!input.price) {
-      alert("Quote price is required");
+    const price = Number(input.price);
+    const deliveryDays = input.deliveryDays === "" || input.deliveryDays == null ? null : Number(input.deliveryDays);
+    if (!Number.isFinite(price) || price <= 0) {
+      setQuoteFeedback({ type: "error", message: "Quotation price must be a positive number." });
+      return;
+    }
+    if (deliveryDays !== null && (!Number.isInteger(deliveryDays) || deliveryDays <= 0)) {
+      setQuoteFeedback({ type: "error", message: "Delivery days must be a positive whole number." });
       return;
     }
 
+    setSubmittingQuoteId(rfqId);
+    setQuoteFeedback(null);
     try {
       const res = await fetch(`${API}/api/rfqs/${rfqId}/quotes`, {
         method: "POST",
@@ -285,16 +305,18 @@ export default function VendorDashboard() {
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.message || "Unable to send quote");
+        setQuoteFeedback({ type: "error", message: data.message || "Unable to submit quotation" });
         return;
       }
 
-      alert("Quote sent");
+      setQuoteFeedback({ type: "success", message: "Quotation submitted to the buyer." });
       setQuoteInputs((prev) => ({ ...prev, [rfqId]: {} }));
-      fetchLeads(token);
+      await fetchLeads(token);
     } catch (error) {
       console.error(error);
-      alert("Unable to send quote");
+      setQuoteFeedback({ type: "error", message: "Unable to submit quotation" });
+    } finally {
+      setSubmittingQuoteId(null);
     }
   };
 
@@ -348,42 +370,65 @@ export default function VendorDashboard() {
 
         <section className="rounded-xl border border-gray-700/50 bg-gray-800/40 p-4 md:p-6">
           <div className="mb-4 flex items-center justify-between gap-3">
-            <h2 className="text-lg font-bold text-white">Open RFQs</h2>
-            <span className="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-bold text-emerald-300">{rfqs.length} open</span>
+            <div>
+              <h2 className="text-lg font-bold text-white">Sourcing Opportunities</h2>
+              <p className="mt-1 text-xs text-gray-400">Review buyer requirements and submit commercial quotations.</p>
+            </div>
+            <span className="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-bold text-emerald-300">{rfqs.length} active</span>
           </div>
+          {quoteFeedback && <div role={quoteFeedback.type === "success" ? "status" : "alert"} className={`mb-3 rounded-lg border px-3 py-2 text-sm ${quoteFeedback.type === "success" ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-200" : "border-rose-500/30 bg-rose-500/10 text-rose-200"}`}>{quoteFeedback.message}</div>}
           <div className="space-y-3 max-h-80 overflow-y-auto">
             {rfqs.length === 0 ? (
               <p className="py-6 text-center text-sm text-gray-400">No open RFQs right now.</p>
-            ) : rfqs.slice(0, 8).map((rfq) => (
+            ) : rfqs.slice(0, 8).map((rfq) => {
+              const submittedQuote = vendorQuotes.find((quote) => Number(quote.rfqId) === Number(rfq.id));
+              return (
               <div key={rfq.id} className="rounded-lg border border-gray-700 bg-gray-900/50 p-3">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="font-semibold text-white">{rfq.title}</p>
-                    <p className="mt-1 text-xs text-gray-400">{rfq.quantity} {rfq.unit} · {rfq.deliveryLocation || "Delivery TBD"}</p>
+                    <p className="mt-1 text-xs text-gray-400">{rfq.quantity} {rfq.unit || "units"}{rfq.deliveryLocation ? ` · ${rfq.deliveryLocation}` : ""}</p>
                   </div>
                   <span className="rounded-full bg-sky-400/10 px-2 py-1 text-xs font-bold text-sky-300">{rfq.category || "General"}</span>
                 </div>
-                <div className="mt-3 grid grid-cols-1 gap-2 md:grid-cols-[1fr_1fr_auto]">
+                {rfq.description && <p className="mt-2 line-clamp-2 text-sm leading-5 text-gray-300">{rfq.description}</p>}
+                {submittedQuote ? (
+                  <div className="mt-3 flex items-center justify-between gap-3 rounded-lg border border-sky-500/20 bg-sky-500/10 px-3 py-2 text-sm">
+                    <span className="text-sky-200">Quoted ₹{Number(submittedQuote.price).toLocaleString("en-IN")}</span>
+                    <span className="rounded-full bg-sky-400/10 px-2 py-1 text-xs font-bold text-sky-300">{submittedQuote.status}</span>
+                  </div>
+                ) : <div className="mt-3 grid grid-cols-1 gap-2 md:grid-cols-2">
+                  <label className="text-xs font-semibold text-gray-300">Quotation price
                   <input
                     type="number"
-                    placeholder="Quote price"
+                    min="0.01"
+                    step="0.01"
+                    placeholder="Amount"
                     value={quoteInputs[rfq.id]?.price || ""}
                     onChange={(event) => setQuoteInputs((prev) => ({ ...prev, [rfq.id]: { ...prev[rfq.id], price: event.target.value } }))}
-                    className="rounded-lg border border-gray-700 bg-gray-950/60 px-3 py-2 text-sm outline-none focus:border-orange-500"
+                    className="mt-1 min-h-10 w-full rounded-lg border border-gray-700 bg-gray-950/60 px-3 text-sm outline-none focus:border-orange-500"
                   />
-                  <input
+                  </label>
+                  <label className="text-xs font-semibold text-gray-300">Delivery days
+                    <input type="number" min="1" step="1" placeholder="14" value={quoteInputs[rfq.id]?.deliveryDays || ""} onChange={(event) => setQuoteInputs((prev) => ({ ...prev, [rfq.id]: { ...prev[rfq.id], deliveryDays: event.target.value } }))} className="mt-1 min-h-10 w-full rounded-lg border border-gray-700 bg-gray-950/60 px-3 text-sm outline-none focus:border-orange-500" />
+                  </label>
+                  <label className="text-xs font-semibold text-gray-300 md:col-span-2">Message
+                  <textarea
+                    rows={2}
                     placeholder="Message"
                     value={quoteInputs[rfq.id]?.message || ""}
                     onChange={(event) => setQuoteInputs((prev) => ({ ...prev, [rfq.id]: { ...prev[rfq.id], message: event.target.value } }))}
-                    className="rounded-lg border border-gray-700 bg-gray-950/60 px-3 py-2 text-sm outline-none focus:border-orange-500"
+                    className="mt-1 w-full rounded-lg border border-gray-700 bg-gray-950/60 px-3 py-2 text-sm outline-none focus:border-orange-500"
                   />
-                  <button onClick={() => sendQuote(rfq.id)} className="rounded-lg bg-orange-600 px-4 py-2 text-sm font-bold hover:bg-orange-700">
-                    Quote
+                  </label>
+                  <button disabled={submittingQuoteId === rfq.id} onClick={() => sendQuote(rfq.id)} className="min-h-10 rounded-lg bg-orange-600 px-4 text-sm font-bold hover:bg-orange-700 disabled:opacity-60 md:col-span-2">
+                    {submittingQuoteId === rfq.id ? "Submitting…" : "Submit quotation"}
                   </button>
-                </div>
+                </div>}
               </div>
-            ))}
+            );})}
           </div>
+          {vendorQuotes.length > 0 && <div className="mt-4 border-t border-gray-700 pt-4"><p className="text-xs font-bold uppercase tracking-wider text-gray-400">Quotation activity</p><div className="mt-2 flex flex-wrap gap-2">{vendorQuotes.slice(0, 6).map((quote) => <span key={quote.id} className="rounded-full border border-gray-700 px-3 py-1 text-xs text-gray-300">{quote.rfq?.title || `RFQ #${quote.rfqId}`} · {quote.status}</span>)}</div></div>}
         </section>
       </div>
 

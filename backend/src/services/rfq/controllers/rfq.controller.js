@@ -1,11 +1,22 @@
 const RFQ = require('../../../models/RFQ');
 const Quote = require('../../../models/Quote');
 const User = require('../../../models/user');
+const { Op } = require('sequelize');
+
+const parsePositiveNumber = (value) => {
+  const number = Number(value);
+  return Number.isFinite(number) && number > 0 ? number : null;
+};
+
+const parsePositiveInteger = (value) => {
+  const number = Number(value);
+  return Number.isInteger(number) && number > 0 ? number : null;
+};
 
 const serializeQuote = async (quote) => {
   const data = quote.toJSON();
   const vendor = await User.findByPk(data.vendorId, {
-    attributes: ['id', 'companyName', 'firstName', 'lastName', 'isVerified', 'location', 'responseRate']
+    attributes: ['id', 'companyName', 'firstName', 'lastName', 'isVerified', 'location']
   });
   return {
     ...data,
@@ -31,7 +42,7 @@ const serializeRfq = async (rfq, includeQuotes = false) => {
 
 exports.getRfqs = async (req, res) => {
   try {
-    const rfqs = await RFQ.findAll({ where: { status: 'OPEN' }, order: [['createdAt', 'DESC']] });
+    const rfqs = await RFQ.findAll({ where: { status: { [Op.in]: ['OPEN', 'QUOTED'] } }, order: [['createdAt', 'DESC']] });
     res.json(await Promise.all(rfqs.map((rfq) => serializeRfq(rfq))));
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -50,18 +61,28 @@ exports.getMyRfqs = async (req, res) => {
 exports.createRfq = async (req, res) => {
   try {
     const { title, description, category, quantity, unit, budget, deliveryLocation } = req.body;
-    if (!title || !quantity) {
+    const normalizedTitle = String(title || '').trim();
+    const normalizedQuantity = parsePositiveInteger(quantity);
+    const normalizedBudget = budget === '' || budget == null ? null : parsePositiveNumber(budget);
+
+    if (!normalizedTitle || !normalizedQuantity) {
       return res.status(400).json({ message: 'Title and quantity are required' });
+    }
+    if (normalizedTitle.length > 255) {
+      return res.status(400).json({ message: 'Title must be 255 characters or fewer' });
+    }
+    if (budget !== '' && budget != null && !normalizedBudget) {
+      return res.status(400).json({ message: 'Budget must be a positive number' });
     }
 
     const rfq = await RFQ.create({
-      title,
-      description,
-      category,
-      quantity: Number(quantity),
-      unit,
-      budget: budget ? Number(budget) : null,
-      deliveryLocation,
+      title: normalizedTitle,
+      description: String(description || '').trim() || null,
+      category: String(category || '').trim() || null,
+      quantity: normalizedQuantity,
+      unit: String(unit || '').trim() || 'units',
+      budget: normalizedBudget,
+      deliveryLocation: String(deliveryLocation || '').trim() || null,
       buyerId: req.user.id
     });
 
@@ -73,18 +94,34 @@ exports.createRfq = async (req, res) => {
 
 exports.createQuote = async (req, res) => {
   try {
-    const rfq = await RFQ.findByPk(req.params.id);
+    const rfqId = parsePositiveInteger(req.params.id);
+    if (!rfqId) return res.status(400).json({ message: 'Invalid RFQ ID' });
+
+    const rfq = await RFQ.findByPk(rfqId);
     if (!rfq) return res.status(404).json({ message: 'RFQ not found' });
+    if (!['OPEN', 'QUOTED'].includes(rfq.status)) {
+      return res.status(409).json({ message: 'This RFQ is no longer accepting quotations' });
+    }
 
     const { price, deliveryDays, message, validUntil } = req.body;
-    if (!price) return res.status(400).json({ message: 'Quote price is required' });
+    const normalizedPrice = parsePositiveNumber(price);
+    const normalizedDeliveryDays = deliveryDays === '' || deliveryDays == null
+      ? 14
+      : parsePositiveInteger(deliveryDays);
+    if (!normalizedPrice) return res.status(400).json({ message: 'Quote price must be a positive number' });
+    if (!normalizedDeliveryDays) return res.status(400).json({ message: 'Delivery days must be a positive whole number' });
+
+    const existingQuote = await Quote.findOne({ where: { rfqId: rfq.id, vendorId: req.user.id } });
+    if (existingQuote) {
+      return res.status(409).json({ message: 'You have already submitted a quotation for this RFQ' });
+    }
 
     const quote = await Quote.create({
       rfqId: rfq.id,
       vendorId: req.user.id,
-      price: Number(price),
-      deliveryDays: deliveryDays ? Number(deliveryDays) : 14,
-      message,
+      price: normalizedPrice,
+      deliveryDays: normalizedDeliveryDays,
+      message: String(message || '').trim() || null,
       validUntil: validUntil || null
     });
 
@@ -110,7 +147,10 @@ exports.getVendorQuotes = async (req, res) => {
 
 exports.updateQuoteStatus = async (req, res) => {
   try {
-    const quote = await Quote.findByPk(req.params.id);
+    const quoteId = parsePositiveInteger(req.params.id);
+    if (!quoteId) return res.status(400).json({ message: 'Invalid quote ID' });
+
+    const quote = await Quote.findByPk(quoteId);
     if (!quote) return res.status(404).json({ message: 'Quote not found' });
 
     const rfq = await RFQ.findByPk(quote.rfqId);
@@ -121,6 +161,9 @@ exports.updateQuoteStatus = async (req, res) => {
     const status = String(req.body.status || '').toUpperCase();
     if (!['ACCEPTED', 'REJECTED'].includes(status)) {
       return res.status(400).json({ message: 'Status must be ACCEPTED or REJECTED' });
+    }
+    if (rfq.status === 'CLOSED') {
+      return res.status(409).json({ message: 'This RFQ is already closed' });
     }
 
     await quote.update({ status });
