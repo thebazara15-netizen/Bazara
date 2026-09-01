@@ -12,6 +12,8 @@ router.get('/users', auth, role(['ADMIN']), adminController.getUsers);
 router.put('/approve/:id', auth, role(['ADMIN']), adminController.approveVendor);
 
 router.get('/orders', auth, role(['ADMIN']), adminController.getOrders);
+router.get('/suppliers', auth, role(['ADMIN']), adminController.getSuppliers);
+router.get('/rfqs', auth, role(['ADMIN']), adminController.getRfqs);
 
 // ✅ Margin API
 router.put('/product/:id/margin', auth, role(['ADMIN']), adminController.updateMargin);

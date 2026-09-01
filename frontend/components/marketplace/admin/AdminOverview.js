@@ -1,0 +1,5 @@
+import { SectionTitle } from "./AdminUi";
+export default function AdminOverview({ users, products, rfqs, orders }) {
+  const metrics = [["Total Users",users.length],["Clients",users.filter((item) => item.role === "CLIENT").length],["Vendors",users.filter((item) => item.role === "VENDOR").length],["Pending Vendors",users.filter((item) => item.role === "VENDOR" && !item.isVerified).length],["Products",products.length],["Open RFQs",rfqs.filter((item) => ["OPEN","QUOTED"].includes(item.status)).length],["Orders",orders.length]];
+  return <section><SectionTitle eyebrow="Live marketplace data" title="Administration overview" description="Operational counts derived from current Bazara records."/><div className="mt-7 grid grid-cols-2 gap-4 xl:grid-cols-4">{metrics.map(([label,value]) => <article key={label} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-sm font-semibold text-slate-500">{label}</p><p className="mt-3 text-3xl font-bold text-slate-950">{value}</p></article>)}</div></section>;
+}
