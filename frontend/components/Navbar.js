@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { clearTokenCookie, decodeToken, getToken } from "../utils/auth";
 import Icon from "./marketplace/Icons";
 
@@ -16,10 +16,10 @@ const primaryLinks = [
   { label: "Wholesale sourcing", href: "/#wholesale-deals" },
 ];
 
-export default function Navbar() {
+function NavbarContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const accountRef = useRef(null);
-  const [searchTerm, setSearchTerm] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
@@ -61,8 +61,8 @@ export default function Navbar() {
 
   const handleSearch = (event) => {
     event.preventDefault();
-    const query = searchTerm.trim();
-    router.push(query ? `/?search=${encodeURIComponent(query)}#featured-products` : "/#featured-products");
+    const query = String(new FormData(event.currentTarget).get("q") || "").trim();
+    router.push(query ? `/products?q=${encodeURIComponent(query)}` : "/products");
   };
 
   const handleLogout = () => {
@@ -99,7 +99,7 @@ export default function Navbar() {
         <form onSubmit={handleSearch} role="search" className="order-3 w-full lg:order-none lg:flex-1">
           <label htmlFor="marketplace-search" className="sr-only">Search products and categories</label>
           <div className="flex h-12 overflow-hidden rounded-xl border-2 border-slate-900 bg-white transition focus-within:border-orange-600 focus-within:ring-2 focus-within:ring-orange-100">
-            <input id="marketplace-search" type="search" value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="Search products, machinery, components..." className="min-w-0 flex-1 px-4 text-sm outline-none placeholder:text-slate-400" />
+            <input key={searchParams.get("q") || ""} id="marketplace-search" name="q" type="search" defaultValue={searchParams.get("q") || ""} placeholder="Search products, machinery, components..." className="min-w-0 flex-1 px-4 text-sm outline-none placeholder:text-slate-400" />
             <button type="submit" className="inline-flex w-14 items-center justify-center bg-slate-950 text-white transition hover:bg-orange-700 focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-white" aria-label="Search products"><Icon name="search" /></button>
           </div>
         </form>
@@ -126,4 +126,8 @@ export default function Navbar() {
       {mobileOpen && <nav aria-label="Mobile marketplace navigation" className="border-t border-slate-200 bg-white px-4 py-3 lg:hidden"><div className="mx-auto grid max-w-7xl gap-1">{primaryLinks.map((link) => <Link key={link.label} href={link.href} onClick={() => setMobileOpen(false)} className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-orange-700">{link.icon && <Icon name={link.icon} className="h-4 w-4" />}{link.label}</Link>)}</div></nav>}
     </header>
   );
+}
+
+export default function Navbar() {
+  return <Suspense fallback={<div className="h-[7.25rem] border-b border-slate-200 bg-white md:h-[9.5rem]" />}><NavbarContent /></Suspense>;
 }

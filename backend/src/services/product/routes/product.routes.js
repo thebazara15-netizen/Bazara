@@ -29,5 +29,7 @@ router.post(
 router.get('/vendor/my-products', auth, role(['VENDOR']), productController.getVendorProducts);
 router.delete('/:id', auth, role(['VENDOR']), productController.deleteVendorProduct);
 router.get('/', productController.getProducts);
+router.get('/meta/categories', productController.getProductCategories);
+router.get('/:id', productController.getProductById);
 
 module.exports = router;

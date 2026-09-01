@@ -20,7 +20,7 @@ export default function Hero() {
             A focused B2B marketplace for Indian manufacturers, traders, wholesalers, distributors, and industrial buyers.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link href="/#featured-products" className="marketplace-button-primary">
+            <Link href="/products" className="marketplace-button-primary">
               Browse products <Icon name="arrow" className="h-4 w-4" />
             </Link>
             <Link href="/rfq" className="marketplace-button-secondary">

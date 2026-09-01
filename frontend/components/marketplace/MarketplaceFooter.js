@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 const columns = [
-  { title: "For buyers", links: [{ label: "Browse products", href: "/#featured-products" }, { label: "Suppliers", href: "/suppliers" }, { label: "Post an RFQ", href: "/rfq" }, { label: "Cart", href: "/cart" }] },
+  { title: "For buyers", links: [{ label: "Browse products", href: "/products" }, { label: "Suppliers", href: "/suppliers" }, { label: "Post an RFQ", href: "/rfq" }, { label: "Cart", href: "/cart" }] },
   { title: "For sellers", links: [{ label: "Register as supplier", href: "/register" }, { label: "Vendor dashboard", href: "/vendor" }] },
   { title: "Account", links: [{ label: "Sign in", href: "/login" }, { label: "Register", href: "/register" }] },
 ];

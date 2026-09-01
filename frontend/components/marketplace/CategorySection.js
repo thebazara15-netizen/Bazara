@@ -29,7 +29,7 @@ export default function CategorySection({ products }) {
         {categories.map((category, index) => (
           <Link
             key={category}
-            href={`/?search=${encodeURIComponent(category)}#featured-products`}
+            href={`/products?category=${encodeURIComponent(category)}`}
             className="group flex min-h-28 flex-col justify-between rounded-2xl border border-slate-200 bg-white p-4 transition hover:-translate-y-0.5 hover:border-orange-300 hover:shadow-lg hover:shadow-slate-200/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600 sm:min-h-32 sm:p-5"
           >
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-50 text-orange-700"><Icon name={index % 3 === 0 ? "package" : index % 3 === 1 ? "storefront" : "categories"} /></span>
