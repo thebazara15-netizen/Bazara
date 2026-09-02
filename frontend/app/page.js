@@ -76,6 +76,14 @@ function HomeContent() {
   }, [page, searchQuery]);
 
   useEffect(() => {
+    if (productsLoading) return;
+    const targetId = window.location.hash.slice(1);
+    if (!["trending-products", "visual-search"].includes(targetId)) return;
+    const frame = window.requestAnimationFrame(() => document.getElementById(targetId)?.scrollIntoView());
+    return () => window.cancelAnimationFrame(frame);
+  }, [productsLoading]);
+
+  useEffect(() => {
     let cancelled = false;
     const loadSuppliers = async () => {
       try {
