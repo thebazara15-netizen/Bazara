@@ -13,6 +13,7 @@ const Address = require('./Address');
 const BuyerOrder = require('./BuyerOrder');
 const SellerOrder = require('./SellerOrder');
 const BuyerOrderItem = require('./BuyerOrderItem');
+const CheckoutDraft = require('./CheckoutDraft');
 
 // Define associations
 User.hasMany(Product, { as: 'products', foreignKey: 'vendorId' });
@@ -63,6 +64,13 @@ BuyerOrderItem.belongsTo(SellerOrder, { as: 'sellerOrder', foreignKey: 'sellerOr
 Product.hasMany(BuyerOrderItem, { as: 'buyerOrderItems', foreignKey: 'productId' });
 BuyerOrderItem.belongsTo(Product, { as: 'productReference', foreignKey: 'productId' });
 
+User.hasMany(CheckoutDraft, { as: 'checkoutDrafts', foreignKey: 'buyerId' });
+CheckoutDraft.belongsTo(User, { as: 'buyer', foreignKey: 'buyerId' });
+Address.hasMany(CheckoutDraft, { as: 'shippingCheckoutDrafts', foreignKey: 'shippingAddressId' });
+CheckoutDraft.belongsTo(Address, { as: 'shippingAddress', foreignKey: 'shippingAddressId' });
+Address.hasMany(CheckoutDraft, { as: 'billingCheckoutDrafts', foreignKey: 'billingAddressId' });
+CheckoutDraft.belongsTo(Address, { as: 'billingAddress', foreignKey: 'billingAddressId' });
+
 module.exports = {
   sequelize,
   User,
@@ -78,5 +86,6 @@ module.exports = {
   Address,
   BuyerOrder,
   SellerOrder,
-  BuyerOrderItem
+  BuyerOrderItem,
+  CheckoutDraft
 };

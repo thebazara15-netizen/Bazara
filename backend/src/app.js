@@ -67,6 +67,13 @@ try {
 }
 
 try {
+  const checkoutRoutes = require('./services/checkout/routes/checkout.routes');
+  app.use('/api/checkout', checkoutRoutes);
+} catch (e) {
+  logger.error('checkoutRoutes error', e);
+}
+
+try {
   const adminRoutes = require('./services/admin/routes/admin.routes');
   app.use('/api/admin', adminRoutes);
 } catch (e) {
