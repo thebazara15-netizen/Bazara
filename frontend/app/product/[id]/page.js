@@ -94,7 +94,10 @@ export default function ProductDetails() {
     let cancelled = false;
     fetch(`${API}/cart`, { headers: { Authorization: `Bearer ${token}` } })
       .then((response) => response.ok ? response.json() : [])
-      .then((items) => { if (!cancelled && Array.isArray(items)) setCartProducts(new Set(items.map((item) => item.productId))); })
+      .then((data) => {
+        const items = Array.isArray(data) ? data : data.items;
+        if (!cancelled && Array.isArray(items)) setCartProducts(new Set(items.map((item) => item.productId)));
+      })
       .catch(() => {})
     return () => { cancelled = true; };
   }, [token, viewerRole]);

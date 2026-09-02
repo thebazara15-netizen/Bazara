@@ -108,7 +108,8 @@ function HomeContent() {
       try {
         const response = await fetch(`${API}/cart`, { headers: { Authorization: `Bearer ${token}` } });
         if (!response.ok) return;
-        const items = await response.json();
+        const data = await response.json();
+        const items = Array.isArray(data) ? data : data.items;
         if (!cancelled && Array.isArray(items)) setCartProducts(new Set(items.map((item) => item.productId)));
       } catch {
         // Cart availability should not block public product browsing.

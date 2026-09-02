@@ -51,7 +51,8 @@ function NavbarContent() {
       try {
         const response = await fetch(`${API}/api/cart`, { headers: { Authorization: `Bearer ${token}` } });
         if (!response.ok) return setCartCount(0);
-        const items = await response.json();
+        const data = await response.json();
+        const items = Array.isArray(data) ? data : data.items;
         setCartCount(Array.isArray(items) ? items.reduce((total, item) => total + Number(item.quantity || 0), 0) : 0);
       } catch {
         setCartCount(0);

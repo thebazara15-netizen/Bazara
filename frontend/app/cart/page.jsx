@@ -75,11 +75,11 @@ export default function CartPage() {
         return;
       }
 
-      const items = Array.isArray(data) ? data : [];
+      const items = Array.isArray(data) ? data : Array.isArray(data.items) ? data.items : [];
 
       const normalizedItems = items.map((item) => {
         const quantity = Number(item?.quantity || 0);
-        const linePrice = Number(item?.price || 0);
+        const linePrice = Number(item?.lineSubtotal ?? item?.price ?? 0);
         const fallbackUnitPrice = quantity > 0 ? linePrice / quantity : 0;
 
         return {
@@ -88,7 +88,7 @@ export default function CartPage() {
           price: linePrice,
           product: {
             name: item?.product?.name || "Product unavailable",
-            finalPrice: Number(
+            finalPrice: Number(item?.unitPrice ??
               item?.product?.finalPrice ??
                 item?.product?.basePrice ??
                 fallbackUnitPrice
@@ -131,11 +131,12 @@ export default function CartPage() {
     [cart, selectedIds]
   );
 
-  const itemSubtotal = selectedItems.reduce((sum, item) => sum + Number(item?.price || 0), 0);
+  const itemSubtotal = selectedItems.reduce((sum, item) => sum + Number(item?.lineSubtotal ?? item?.price ?? 0), 0);
   const shippingFee = selectedItems.length > 0 ? Math.max(250, itemSubtotal * 0.03) : 0;
   const grandTotal = itemSubtotal + shippingFee;
   const totalQuantity = selectedItems.reduce((sum, item) => sum + Number(item?.quantity || 0), 0);
   const allSelected = cart.length > 0 && selectedIds.length === cart.length;
+  const invalidItems = cart.filter((item) => item.valid === false);
 
   const toggleAll = () => {
     setSelectedIds(allSelected ? [] : cart.map((item) => item.id));
@@ -208,6 +209,10 @@ export default function CartPage() {
   };
 
   const goToCheckout = () => {
+    if (invalidItems.length > 0) {
+      alert("Resolve unavailable stock or minimum-order issues before checkout.");
+      return;
+    }
     if (selectedIds.length === 0) {
       alert("Please select at least one cart item");
       return;
@@ -287,8 +292,16 @@ export default function CartPage() {
                 {cart.map((item) => {
                   const product = item.product || {};
                   const unitPrice = getUnitPrice(item);
-                  const step = Math.max(1, Number(product.moq || 1));
+                  const step = Math.max(1, Number(item.moq ?? product.moq ?? 1));
                   const isSelected = selectedIds.includes(item.id);
+                  const validationMessages = {
+                    MOQ_CHANGED: "This quantity is below the product's current MOQ.",
+                    OUT_OF_STOCK: "This product is currently out of stock.",
+                    INSUFFICIENT_STOCK: "This quantity exceeds currently available stock.",
+                    PRODUCT_UNAVAILABLE: "This product is no longer available.",
+                    PRODUCT_CONFIGURATION_INVALID: "This product cannot currently be purchased.",
+                    INVALID_QUANTITY: "This cart quantity is invalid."
+                  };
 
                   return (
                     <article key={item.id} className="grid grid-cols-[32px_minmax(0,1fr)] gap-4">
@@ -333,6 +346,11 @@ export default function CartPage() {
                                 MOQ: {product.moq || 1} pieces
                               </span>
                             </div>
+                            {item.valid === false && (
+                              <p role="alert" className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">
+                                {validationMessages[item.reason] || "This cart item needs attention before checkout."}
+                              </p>
+                            )}
                           </div>
 
                           <div className="grid gap-4 rounded-lg bg-gray-50 p-4 md:grid-cols-[150px_minmax(0,1fr)_320px] md:items-center">
@@ -351,7 +369,7 @@ export default function CartPage() {
                                 Category: {product.category || "Industrial supplies"}
                               </p>
                               <p className="mt-1 text-sm text-gray-600">
-                                Stock available: {product.stock ?? "Contact supplier"}
+                                Stock available: {item.availableStock ?? product.stock ?? "Unavailable"}
                               </p>
                               <p className="mt-3 text-sm text-gray-500">
                                 Estimated delivery: 10 Jul-21 Aug
@@ -361,7 +379,7 @@ export default function CartPage() {
                             <div className="flex flex-col gap-4 md:items-end">
                               <div className="text-left md:text-right">
                                 <p className="text-lg font-bold">{formatCompactPrice(unitPrice)} <span className="text-sm font-medium text-gray-500">/piece</span></p>
-                                <p className="mt-1 text-sm text-gray-500">Line total: {formatPrice(item.price)}</p>
+                                <p className="mt-1 text-sm text-gray-500">Line total: {formatPrice(item.lineSubtotal ?? item.price)}</p>
                               </div>
 
                               <div className="flex h-12 w-full max-w-[190px] items-center justify-between rounded-full border border-gray-200 bg-white px-2">
@@ -435,11 +453,12 @@ export default function CartPage() {
 
                 <button
                   onClick={goToCheckout}
-                  disabled={cart.length === 0 || selectedIds.length === 0}
+                  disabled={cart.length === 0 || selectedIds.length === 0 || invalidItems.length > 0}
                   className="mt-8 w-full rounded-full bg-orange-600 px-6 py-4 text-base font-extrabold text-white shadow-lg shadow-orange-600/20 transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:shadow-none"
                 >
                   Check out
                 </button>
+                {invalidItems.length > 0 && <p role="alert" className="mt-3 text-sm font-semibold text-red-700">Checkout is unavailable until all cart items meet current MOQ and stock rules.</p>}
 
                 <div className="mt-8 space-y-5 border-t border-gray-100 pt-6">
                   <div>
