@@ -1,621 +1,128 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { decodeToken, getToken } from "../../utils/auth";
+import VendorShell from "../../components/marketplace/vendor/VendorShell";
+import VendorOverview from "../../components/marketplace/vendor/VendorOverview";
+import VendorProducts from "../../components/marketplace/vendor/VendorProducts";
+import VendorProductForm from "../../components/marketplace/vendor/VendorProductForm";
+import VendorInquiries from "../../components/marketplace/vendor/VendorInquiries";
+import VendorRfqs from "../../components/marketplace/vendor/VendorRfqs";
+import VendorQuotes from "../../components/marketplace/vendor/VendorQuotes";
+import { ConfirmDialog, VendorFeedback, VendorLoading, VendorPending } from "../../components/marketplace/vendor/VendorState";
+
+const API = "/api";
 
 export default function VendorDashboard() {
   const router = useRouter();
-
+  const [active, setActive] = useState("overview");
+  const [token, setToken] = useState(null);
   const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [selectedImages, setSelectedImages] = useState([]);
-  const [imagePreviews, setImagePreviews] = useState([]);
-  const [currentImageIndex, setCurrentImageIndex] = useState({});
   const [inquiries, setInquiries] = useState([]);
   const [rfqs, setRfqs] = useState([]);
-  const [quoteInputs, setQuoteInputs] = useState({});
-  const [openMenuId, setOpenMenuId] = useState(null); // ✅ NEW: Track open dropdown menu
+  const [quotes, setQuotes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [pending, setPending] = useState(false);
+  const [feedback, setFeedback] = useState(null);
+  const [editing, setEditing] = useState(null);
+  const [deleting, setDeleting] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [inquiryBusyId, setInquiryBusyId] = useState(null);
+  const [drafts, setDrafts] = useState({});
+  const [submittingQuoteId, setSubmittingQuoteId] = useState(null);
 
-  const [form, setForm] = useState({
-    name: "",
-    description: "",
-    category: "",
-    moq: "",
-    stock: "",
-    basePrice: ""
-  });
+  const request = useCallback(async (url, options = {}) => {
+    const response = await fetch(`${API}${url}`, { ...options, headers: { ...(options.headers || {}), Authorization: `Bearer ${token}` } });
+    const data = await response.json();
+    if (!response.ok) {
+      const error = new Error(data.message || "Unable to load seller workspace");
+      error.status = response.status;
+      throw error;
+    }
+    return data;
+  }, [token]);
 
-  const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-
-  // ✅ Get token
-  const getToken = () => {
-    if (typeof document === "undefined") return null;
-
-    return document.cookie
-      .split("; ")
-      .find(row => row.startsWith("token="))
-      ?.split("=")[1];
-  };
-
-  // ✅ Decode token
-  const decodeToken = (token) => {
+  const load = useCallback(async () => {
+    if (!token) return;
     try {
-      return JSON.parse(atob(token.split(".")[1]));
-    } catch {
-      return null;
-    }
-  };
-
-  // ✅ Protect page (VERY IMPORTANT)
-  useEffect(() => {
-    const token = getToken();
-
-    if (!token) {
-      localStorage.setItem("redirect", "/cart");
-      router.push("/login");
-      return;
-    }
-
-    const user = decodeToken(token);
-
-    if (!user || user.role !== "VENDOR") {
-      router.push("/");
-      return;
-    }
-
-    fetchProducts(token);
-    fetchLeads(token);
-  }, []);
-
-  const fetchLeads = async (token) => {
-    try {
-      const [inquiryRes, rfqRes] = await Promise.all([
-        fetch(`${API}/api/inquiries/vendor`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        fetch(`${API}/api/rfqs`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
+      const [productData, inquiryData, rfqData, quoteData] = await Promise.all([
+        request("/products/vendor/my-products"), request("/inquiries/vendor"),
+        request("/rfqs"), request("/rfqs/vendor/quotes")
       ]);
-      const inquiryData = await inquiryRes.json();
-      const rfqData = await rfqRes.json();
+      setProducts(Array.isArray(productData) ? productData : []);
       setInquiries(Array.isArray(inquiryData) ? inquiryData : []);
       setRfqs(Array.isArray(rfqData) ? rfqData : []);
+      setQuotes(Array.isArray(quoteData) ? quoteData : []);
+      setPending(false);
     } catch (error) {
-      console.error(error);
-      setInquiries([]);
-      setRfqs([]);
-    }
-  };
-
-  // ✅ Fetch Products (only vendor's own)
-  const fetchProducts = async (token) => {
-    try {
-      const res = await fetch(`${API}/api/products/vendor/my-products`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      const data = await res.json();
-      // ✅ FIXED: Ensure products is always an array
-      setProducts(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error(error);
-      setProducts([]); // ✅ Fallback to empty array on error
-    }
-  };
-
-  // ✅ Handle input change
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  // ✅ UPDATED: Handle multiple image selection
-  const handleImageSelect = (e) => {
-    const files = Array.from(e.target.files);
-    setSelectedImages(files);
-
-    // ✅ Create preview URLs
-    const previews = files.map(file => URL.createObjectURL(file));
-    setImagePreviews(previews);
-  };
-
-  // ✅ Add Product with multiple images
-  const addProduct = async () => {
-    const token = getToken();
-
-    if (!form.name || !form.basePrice) {
-      alert("Name and price are required");
-      return;
-    }
-
-    if (loading) return;
-
-    setLoading(true);
-
-    try {
-      // ✅ Use FormData to handle multiple files
-      const formData = new FormData();
-      formData.append("name", form.name);
-      formData.append("description", form.description);
-      formData.append("category", form.category);
-      formData.append("moq", Number(form.moq));
-      formData.append("stock", Number(form.stock));
-      formData.append("basePrice", Number(form.basePrice));
-      formData.append("pricingTiers", JSON.stringify([]));
-
-      // ✅ Append all selected images
-      selectedImages.forEach(image => {
-        formData.append("images", image);
-      });
-
-      const res = await fetch(`${API}/api/products`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`
-        },
-        body: formData
-      });
-
-      if (res.ok) {
-        alert("Product added successfully with images!");
-
-        setForm({
-          name: "",
-          description: "",
-          category: "",
-          moq: "",
-          stock: "",
-          basePrice: ""
-        });
-        setSelectedImages([]);
-        setImagePreviews([]);
-
-        // ✅ Reset file input
-        const fileInput = document.getElementById("imageInput");
-        if (fileInput) fileInput.value = "";
-
-        fetchProducts(token);
-      } else {
-        const err = await res.json();
-        alert(err.message || "Error adding product");
-      }
-
-    } catch (error) {
-      console.error(error);
-      alert("Server error");
+      if (error.status === 403 && error.message.toLowerCase().includes("awaiting")) setPending(true);
+      else setFeedback({ type: "error", message: error.message });
     } finally {
       setLoading(false);
     }
-  };
+  }, [request, token]);
 
-  // ✅ Navigate to next/previous image in gallery
-  const nextImage = (productId) => {
-    setCurrentImageIndex(prev => ({
-      ...prev,
-      [productId]: ((prev[productId] || 0) + 1) % (products.find(p => p.id === productId)?.images?.length || 1)
-    }));
-  };
+  useEffect(() => {
+    const current = getToken();
+    const user = current ? decodeToken(current) : null;
+    if (!current) { localStorage.setItem("redirect", "/vendor"); router.push("/login"); return; }
+    if (user?.role !== "VENDOR") { router.push("/"); return; }
+    setToken(current);
+  }, [router]);
 
-  const prevImage = (productId) => {
-    const product = products.find(p => p.id === productId);
-    const imageCount = product?.images?.length || 1;
-    setCurrentImageIndex(prev => ({
-      ...prev,
-      [productId]: ((prev[productId] || 0) - 1 + imageCount) % imageCount
-    }));
-  };
+  useEffect(() => { if (token) load(); }, [load, token]);
 
-  const normalizeImage = (image) => {
-    if (!image) return "/industrial.jpg";
-    if (String(image).startsWith("http") || String(image).startsWith("/")) return image;
-    return `${API}/uploads/${image}`;
-  };
-
-  const handleImageFallback = (event) => {
-    event.currentTarget.src = "/industrial.jpg";
-  };
-
-  // ✅ NEW: Delete vendor's own product
-  const deleteProduct = async (productId) => {
-    if (!window.confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
-      return;
-    }
-
-    const token = getToken();
-
+  const saveProduct = async (form, files) => {
+    setBusy(true); setFeedback(null);
     try {
-      const res = await fetch(`${API}/api/products/${productId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        alert(data.message || "Error deleting product");
-        return;
+      if (editing) {
+        await request(`/products/vendor/${editing.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
+      } else {
+        const body = new FormData();
+        Object.entries(form).forEach(([key, value]) => body.append(key, key === "pricingTiers" ? JSON.stringify(value) : value));
+        files.forEach((file) => body.append("images", file));
+        await request("/products", { method: "POST", body });
       }
-
-      alert("Product deleted successfully");
-      fetchProducts(token);
-    } catch (error) {
-      console.error(error);
-      alert("Error deleting product");
-    }
+      setFeedback({ type: "success", message: editing ? "Product updated successfully." : "Product published successfully." });
+      setEditing(null); setActive("products"); await load();
+    } catch (error) { setFeedback({ type: "error", message: error.message }); }
+    finally { setBusy(false); }
   };
 
-  const updateInquiryStatus = async (inquiryId, status) => {
-    const token = getToken();
-    try {
-      const res = await fetch(`${API}/api/inquiries/${inquiryId}/status`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ status })
-      });
-      if (res.ok) fetchLeads(token);
-    } catch (error) {
-      console.error(error);
-    }
+  const deleteProduct = async () => {
+    setBusy(true);
+    try { await request(`/products/${deleting.id}`, { method: "DELETE" }); setFeedback({ type: "success", message: `${deleting.name} was removed.` }); setDeleting(null); await load(); }
+    catch (error) { setFeedback({ type: "error", message: error.message }); }
+    finally { setBusy(false); }
   };
 
-  const sendQuote = async (rfqId) => {
-    const token = getToken();
-    const input = quoteInputs[rfqId] || {};
-
-    if (!input.price) {
-      alert("Quote price is required");
-      return;
-    }
-
-    try {
-      const res = await fetch(`${API}/api/rfqs/${rfqId}/quotes`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(input)
-      });
-      const data = await res.json();
-
-      if (!res.ok) {
-        alert(data.message || "Unable to send quote");
-        return;
-      }
-
-      alert("Quote sent");
-      setQuoteInputs((prev) => ({ ...prev, [rfqId]: {} }));
-      fetchLeads(token);
-    } catch (error) {
-      console.error(error);
-      alert("Unable to send quote");
-    }
+  const updateInquiry = async (id, status) => {
+    setInquiryBusyId(id);
+    try { await request(`/inquiries/${id}/status`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }) }); await load(); setFeedback({ type: "success", message: "Inquiry status updated." }); }
+    catch (error) { setFeedback({ type: "error", message: error.message }); }
+    finally { setInquiryBusyId(null); }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-100 via-gray-100 to-gray-100 text-gray-900 p-4 md:p-8">
+  const submitQuote = async (rfqId) => {
+    const draft = drafts[rfqId] || {};
+    const price = Number(draft.price);
+    const days = draft.deliveryDays === "" || draft.deliveryDays == null ? null : Number(draft.deliveryDays);
+    if (!Number.isFinite(price) || price <= 0 || (days !== null && (!Number.isInteger(days) || days <= 0))) return setFeedback({ type: "error", message: "Enter a positive quotation price and valid delivery days." });
+    setSubmittingQuoteId(rfqId);
+    try { await request(`/rfqs/${rfqId}/quotes`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(draft) }); setDrafts((current) => ({ ...current, [rfqId]: {} })); setFeedback({ type: "success", message: "Quotation submitted to the buyer." }); await load(); }
+    catch (error) { setFeedback({ type: "error", message: error.message }); }
+    finally { setSubmittingQuoteId(null); }
+  };
 
-      {/* Header */}
-      <div className="mb-8 md:mb-12">
-        <h1 className="text-3xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 via-blue-600 to-blue-600 bg-clip-text text-transparent mb-2 md:mb-3">
-          Vendor Dashboard
-        </h1>
-        <p className="text-gray-500 text-sm md:text-lg">Manage and showcase your premium products</p>
-      </div>
+  const navigate = (section) => { setActive(section); if (section !== "add") setEditing(null); window.scrollTo({ top: 0, behavior: "smooth" }); };
+  const submittedIds = new Set(quotes.map((quote) => quote.rfqId));
+  const content = active === "overview" ? <VendorOverview counts={{ products: products.length, inquiries: inquiries.length, rfqs: rfqs.length, quotes: quotes.length }} onNavigate={navigate}/>
+    : active === "products" ? <VendorProducts products={products} onAdd={() => navigate("add")} onEdit={(product) => { setEditing(product); setActive("add"); }} onDelete={setDeleting}/>
+    : active === "add" ? <VendorProductForm product={editing} busy={busy} onCancel={() => navigate("products")} onSubmit={saveProduct} onError={(message) => setFeedback(message ? { type: "error", message } : null)}/>
+    : active === "inquiries" ? <VendorInquiries inquiries={inquiries} busyId={inquiryBusyId} onStatus={updateInquiry}/>
+    : active === "rfqs" ? <VendorRfqs rfqs={rfqs} drafts={drafts} onDraftChange={(id, value) => setDrafts((current) => ({ ...current, [id]: value }))} onQuote={submitQuote} submittingId={submittingQuoteId} submittedRfqIds={submittedIds}/>
+    : <VendorQuotes quotes={quotes}/>;
 
-      <div className="mb-8 grid gap-4 xl:grid-cols-2">
-        <section className="rounded-xl border border-gray-200 bg-white p-4 md:p-6">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <h2 className="text-lg font-bold text-gray-900">Buyer Inquiries</h2>
-            <span className="rounded-full bg-sky-400/10 px-3 py-1 text-xs font-bold text-sky-300">{inquiries.length} leads</span>
-          </div>
-          <div className="space-y-3 max-h-80 overflow-y-auto">
-            {inquiries.length === 0 ? (
-              <p className="py-6 text-center text-sm text-gray-500">No product inquiries yet.</p>
-            ) : inquiries.map((inquiry) => (
-              <div key={inquiry.id} className="rounded-lg border border-gray-200 bg-gray-50 p-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="font-semibold text-gray-900">{inquiry.product?.name || "Product inquiry"}</p>
-                    <p className="mt-1 text-xs text-gray-500">
-                      {inquiry.buyer?.companyName || inquiry.buyer?.email || "Buyer"} · Qty {inquiry.quantity}
-                    </p>
-                  </div>
-                  <span className="rounded-full bg-blue-50 px-2 py-1 text-xs font-bold text-blue-600">{inquiry.status}</span>
-                </div>
-                <p className="mt-2 text-sm text-gray-600">{inquiry.message || "Buyer requested more details."}</p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {["CONTACTED", "QUOTED", "CLOSED"].map((status) => (
-                    <button
-                      key={status}
-                      onClick={() => updateInquiryStatus(inquiry.id, status)}
-                      className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-200 hover:bg-gray-100"
-                    >
-                      {status}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="rounded-xl border border-gray-200 bg-white p-4 md:p-6">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <h2 className="text-lg font-bold text-gray-900">Open RFQs</h2>
-            <span className="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-bold text-emerald-300">{rfqs.length} open</span>
-          </div>
-          <div className="space-y-3 max-h-80 overflow-y-auto">
-            {rfqs.length === 0 ? (
-              <p className="py-6 text-center text-sm text-gray-500">No open RFQs right now.</p>
-            ) : rfqs.slice(0, 8).map((rfq) => (
-              <div key={rfq.id} className="rounded-lg border border-gray-200 bg-gray-50 p-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="font-semibold text-gray-900">{rfq.title}</p>
-                    <p className="mt-1 text-xs text-gray-500">{rfq.quantity} {rfq.unit} · {rfq.deliveryLocation || "Delivery TBD"}</p>
-                  </div>
-                  <span className="rounded-full bg-sky-400/10 px-2 py-1 text-xs font-bold text-sky-300">{rfq.category || "General"}</span>
-                </div>
-                <div className="mt-3 grid grid-cols-1 gap-2 md:grid-cols-[1fr_1fr_auto]">
-                  <input
-                    type="number"
-                    placeholder="Quote price"
-                    value={quoteInputs[rfq.id]?.price || ""}
-                    onChange={(event) => setQuoteInputs((prev) => ({ ...prev, [rfq.id]: { ...prev[rfq.id], price: event.target.value } }))}
-                    className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-600"
-                  />
-                  <input
-                    placeholder="Message"
-                    value={quoteInputs[rfq.id]?.message || ""}
-                    onChange={(event) => setQuoteInputs((prev) => ({ ...prev, [rfq.id]: { ...prev[rfq.id], message: event.target.value } }))}
-                    className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-600"
-                  />
-                  <button onClick={() => sendQuote(rfq.id)} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700">
-                    Quote
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      </div>
-
-      {/* Add Product Form - Premium Card */}
-      <div className="mb-8 md:mb-12 bg-gradient-to-br from-white to-white rounded-2xl p-4 md:p-8 border border-gray-200 shadow-2xl hover:border-blue-600/30 transition">
-        <div className="flex items-center gap-3 mb-4 md:mb-6">
-          <div className="text-2xl md:text-3xl">📦</div>
-          <h2 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent">
-            Add New Product
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-          <input
-            name="name"
-            placeholder="Product Name"
-            value={form.name}
-            onChange={handleChange}
-            className="bg-white border border-gray-200 rounded-lg p-2 md:p-3 text-gray-900 placeholder-gray-400 focus:border-blue-600 focus:outline-none transition text-sm md:text-base"
-          />
-
-          <input
-            name="category"
-            placeholder="Category"
-            value={form.category}
-            onChange={handleChange}
-            className="bg-white border border-gray-200 rounded-lg p-2 md:p-3 text-gray-900 placeholder-gray-400 focus:border-blue-600 focus:outline-none transition text-sm md:text-base"
-          />
-
-          <input
-            name="moq"
-            placeholder="MOQ (Minimum Order Quantity)"
-            value={form.moq}
-            onChange={handleChange}
-            className="bg-white border border-gray-200 rounded-lg p-2 md:p-3 text-gray-900 placeholder-gray-400 focus:border-blue-600 focus:outline-none transition text-sm md:text-base"
-          />
-
-          <input
-            name="stock"
-            placeholder="Stock Quantity"
-            value={form.stock}
-            onChange={handleChange}
-            className="bg-white border border-gray-200 rounded-lg p-2 md:p-3 text-gray-900 placeholder-gray-400 focus:border-blue-600 focus:outline-none transition text-sm md:text-base"
-          />
-
-          <input
-            name="basePrice"
-            placeholder="Base Price (Rs.)"
-            value={form.basePrice}
-            onChange={handleChange}
-            className="bg-white border border-gray-200 rounded-lg p-2 md:p-3 text-gray-900 placeholder-gray-400 focus:border-blue-600 focus:outline-none transition text-sm md:text-base"
-          />
-        </div>
-
-        <textarea
-          name="description"
-          placeholder="Product Description"
-          value={form.description}
-          onChange={handleChange}
-          className="w-full mt-3 md:mt-4 bg-white border border-gray-200 rounded-lg p-2 md:p-3 text-gray-900 placeholder-gray-400 focus:border-blue-600 focus:outline-none transition h-20 md:h-24 text-sm md:text-base"
-        />
-
-        {/* Image Upload Section */}
-        <div className="mt-4 md:mt-6 p-4 md:p-6 bg-gray-50 border border-gray-200 rounded-lg">
-          <label className="block text-xs md:text-sm font-semibold mb-3 flex items-center gap-2">
-            <span className="text-xl md:text-2xl">🖼️</span>
-            Upload Product Images (up to 10)
-          </label>
-          <input
-            id="imageInput"
-            type="file"
-            multiple
-            accept="image/*"
-            onChange={handleImageSelect}
-            className="w-full p-2 md:p-3 bg-white border-2 border-dashed border-gray-200 rounded-lg text-gray-900 cursor-pointer hover:border-blue-600 transition text-xs md:text-base"
-          />
-          <p className="text-xs md:text-sm text-gray-500 mt-2">
-            {selectedImages.length === 0 ? 'No images selected' : `Selected: ${selectedImages.length} image${selectedImages.length !== 1 ? 's' : ''}`}
-          </p>
-
-          {/* Image Previews */}
-          {imagePreviews.length > 0 && (
-            <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-3">
-              {imagePreviews.map((preview, idx) => (
-                <div key={idx} className="relative group">
-                  <img
-                    src={preview}
-                    alt={`Preview ${idx + 1}`}
-                    className="w-full h-20 md:h-24 object-cover rounded-lg border-2 border-blue-200 group-hover:border-blue-600 transition"
-                  />
-                  <span className="absolute top-1 right-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-2 py-1 rounded text-xs font-bold">
-                    {idx + 1}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <button
-          onClick={addProduct}
-          disabled={loading}
-          className="w-full mt-4 md:mt-6 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 text-white font-bold py-2 md:py-3 rounded-lg transition transform  shadow-lg text-sm md:text-base"
-        >
-          {loading ? "⏳ Adding Product..." : "✨ Add Product"}
-        </button>
-      </div>
-
-      {/* My Products Section */}
-      <div className="bg-gradient-to-br from-white to-white rounded-2xl p-4 md:p-6 border border-gray-200 shadow-2xl">
-        <div className="flex items-center gap-3 mb-4 md:mb-5">
-          <div className="text-2xl md:text-3xl">🏪</div>
-          <h2 className="text-lg md:text-xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
-            My Products ({products.length})
-          </h2>
-        </div>
-
-        {products.length === 0 ? (
-          <div className="text-center py-8 md:py-12">
-            <p className="text-2xl md:text-3xl mb-3">📭</p>
-            <p className="text-gray-500 text-base md:text-lg">No products yet. Add your first product above!</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4">
-            {products.map(product => (
-              <div 
-                key={product.id} 
-                className="group bg-gradient-to-br from-white to-white border border-gray-200 hover:border-blue-600/50 rounded-lg overflow-hidden transition shadow-lg hover:shadow-blue-950/10"
-              >
-                {/* Image Gallery */}
-                {product.images && product.images.length > 0 ? (
-                  <div className="relative h-32 bg-gray-900/80 overflow-hidden border-b border-gray-200">
-                    <img
-                      src={normalizeImage(product.images[currentImageIndex[product.id] || 0])}
-                      alt={product.name}
-                      onError={handleImageFallback}
-                      className="w-full h-full object-contain p-2"
-                    />
-
-                    {/* 3-Dot Menu Button - Top Right Corner */}
-                    <div className="absolute top-2 right-2 z-30">
-                      <button
-                        onClick={() => setOpenMenuId(openMenuId === product.id ? null : product.id)}
-                        className="bg-black/55 hover:bg-black/80 text-white px-2 py-1 rounded-md transition text-sm"
-                      >
-                        ⋯
-                      </button>
-
-                      {/* Dropdown Menu */}
-                      {openMenuId === product.id && (
-                        <div className="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-xl z-50 w-40">
-                          <button
-                            onClick={() => {
-                              deleteProduct(product.id);
-                              setOpenMenuId(null);
-                            }}
-                            className="w-full text-left px-3 py-2 hover:bg-red-600/20 text-red-400 hover:text-red-300 font-medium transition text-xs flex items-center gap-2"
-                          >
-                            🗑️ Delete Product
-                          </button>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Image Navigation */}
-                    {product.images.length > 1 && (
-                      <>
-                        <button
-                          onClick={() => prevImage(product.id)}
-                          className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/70 hover:bg-black/90 text-white px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition text-xs"
-                        >
-                          ◀
-                        </button>
-                        <button
-                          onClick={() => nextImage(product.id)}
-                          className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/70 hover:bg-black/90 text-white px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition text-xs"
-                        >
-                          ▶
-                        </button>
-                      </>
-                    )}
-
-                    {/* Image Counter & Dots */}
-                    <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1">
-                      {product.images.map((_, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => setCurrentImageIndex(prev => ({ ...prev, [product.id]: idx }))}
-                          className={`w-1.5 h-1.5 rounded-full transition ${
-                            idx === (currentImageIndex[product.id] || 0) ? 'bg-blue-600' : 'bg-gray-400'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="w-full h-32 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center border-b border-gray-200">
-                    <span className="text-gray-500 text-base md:text-lg">📷 No Image</span>
-                  </div>
-                )}
-
-                {/* Product Info */}
-                <div className="p-3">
-                  <h3 className="font-bold text-sm mb-1.5 text-gray-900 line-clamp-1 group-hover:text-blue-600 transition">
-                    {product.name}
-                  </h3>
-                  <p className="text-gray-500 text-xs mb-2 line-clamp-2 min-h-8">{product.description || "No description added"}</p>
-                  
-                  {/* Price */}
-                  <div className="mb-2 rounded-md border border-blue-200 bg-blue-50 px-2.5 py-2">
-                    <p className="text-[11px] text-gray-500">Base Price</p>
-                    <p className="text-lg md:text-xl font-bold text-blue-600">₹{product.basePrice}</p>
-                  </div>
-
-                  {/* Details Grid */}
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="bg-gray-50 px-2.5 py-2 rounded-md">
-                      <p className="text-gray-500 text-[11px]">MOQ</p>
-                      <p className="text-gray-900 font-semibold text-xs">{product.moq} units</p>
-                    </div>
-                    <div className="bg-gray-50 px-2.5 py-2 rounded-md">
-                      <p className="text-gray-500 text-[11px]">Stock</p>
-                      <p className="text-gray-900 font-semibold text-xs">{product.stock} units</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-    </div>
-  );
+  return <VendorShell active={active} onNavigate={navigate}><VendorFeedback feedback={feedback} onDismiss={() => setFeedback(null)}/>{loading ? <VendorLoading/> : pending ? <VendorPending/> : content}<ConfirmDialog product={deleting} busy={busy} onCancel={() => setDeleting(null)} onConfirm={deleteProduct}/></VendorShell>;
 }

@@ -8,6 +8,7 @@ const OrderItem = require('./OrderItem');
 const RFQ = require('./RFQ');
 const Quote = require('./Quote');
 const Inquiry = require('./Inquiry');
+const WishlistItem = require('./WishlistItem');
 
 // Define associations
 User.hasMany(Product, { as: 'products', foreignKey: 'vendorId' });
@@ -19,6 +20,7 @@ Cart.belongsTo(User, { as: 'user', foreignKey: 'userId' });
 Cart.hasMany(CartItem, { as: 'items', foreignKey: 'cartId' });
 CartItem.belongsTo(Cart, { as: 'cart', foreignKey: 'cartId' });
 CartItem.belongsTo(Product, { as: 'product', foreignKey: 'productId' });
+Product.hasMany(CartItem, { as: 'cartItems', foreignKey: 'productId' });
 
 User.hasMany(Order, { as: 'orders', foreignKey: 'buyerId' });
 Order.belongsTo(User, { as: 'buyer', foreignKey: 'buyerId' });
@@ -38,6 +40,11 @@ User.hasMany(Inquiry, { as: 'inquiries', foreignKey: 'fromUserId' });
 Inquiry.belongsTo(User, { as: 'sender', foreignKey: 'fromUserId' });
 Inquiry.belongsTo(User, { as: 'recipient', foreignKey: 'toUserId' });
 
+User.hasMany(WishlistItem, { as: 'wishlistItems', foreignKey: 'userId' });
+WishlistItem.belongsTo(User, { as: 'user', foreignKey: 'userId' });
+Product.hasMany(WishlistItem, { as: 'wishlistItems', foreignKey: 'productId' });
+WishlistItem.belongsTo(Product, { as: 'product', foreignKey: 'productId' });
+
 module.exports = {
   sequelize,
   User,
@@ -48,5 +55,6 @@ module.exports = {
   OrderItem,
   RFQ,
   Quote,
-  Inquiry
+  Inquiry,
+  WishlistItem
 };

@@ -1,448 +1,143 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { clearTokenCookie, decodeToken, getToken } from "../utils/auth";
+import Icon from "./marketplace/Icons";
+import MarketplaceMegaMenu from "./marketplace/MarketplaceMegaMenu";
 
 const subscribeToAuthCookie = () => () => {};
 const getServerToken = () => null;
-
-const menuItems = [
-  { label: "My Bazara", href: "/" },
-  { label: "Orders", href: "/cart" },
-  { label: "Messages", href: "/" },
-  { label: "RFQs", href: "/" },
-  { label: "Favorites", href: "/" },
-  { label: "Account", href: "/" },
+const primaryLinks = [
+  { label: "Trending products", href: "/#trending-products" },
+  { label: "Suppliers", href: "/suppliers" },
+  { label: "Post requirement", href: "/rfq" },
+  { label: "Wholesale sourcing", href: "/#wholesale-deals" },
 ];
 
-function Icon({ name, className = "h-6 w-6" }) {
-  const common = {
-    className,
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: "2",
-    strokeLinecap: "round",
-    strokeLinejoin: "round",
-    viewBox: "0 0 24 24",
-    "aria-hidden": "true",
-  };
-
-  if (name === "globe") {
-    return (
-      <svg {...common}>
-        <circle cx="12" cy="12" r="10" />
-        <path d="M2 12h20" />
-        <path d="M12 2a15.3 15.3 0 0 1 0 20" />
-        <path d="M12 2a15.3 15.3 0 0 0 0 20" />
-      </svg>
-    );
-  }
-
-  if (name === "message") {
-    return (
-      <svg {...common}>
-        <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
-        <path d="M8 9h8" />
-        <path d="M8 13h5" />
-      </svg>
-    );
-  }
-
-  if (name === "orders") {
-    return (
-      <svg {...common}>
-        <path d="M9 5h6" />
-        <path d="M9 3h6v4H9z" />
-        <path d="M6 5H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1" />
-        <path d="M8 12h8" />
-        <path d="M8 16h6" />
-      </svg>
-    );
-  }
-
-  if (name === "cart") {
-    return (
-      <svg {...common}>
-        <circle cx="9" cy="20" r="1" />
-        <circle cx="18" cy="20" r="1" />
-        <path d="M2 3h3l3 12h10l3-8H7" />
-      </svg>
-    );
-  }
-
-  if (name === "user") {
-    return (
-      <svg {...common}>
-        <path d="M20 21a8 8 0 0 0-16 0" />
-        <circle cx="12" cy="7" r="4" />
-      </svg>
-    );
-  }
-
-  return (
-    <svg {...common}>
-      <circle cx="11" cy="11" r="7" />
-      <path d="m16.5 16.5 4 4" />
-    </svg>
-  );
-}
-
-function NavIconButton({ children, label, onClick, active }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={label}
-      className={`relative flex h-10 min-w-10 items-center justify-center rounded-lg border border-gray-200 bg-white px-3 text-gray-700 transition hover:bg-gray-50 hover:text-blue-600 ${
-        active ? "border-blue-200 bg-blue-50 text-blue-600" : ""
-      }`}
-    >
-      {children}
-    </button>
-  );
-}
-
-export default function Navbar() {
+function NavbarContent() {
   const router = useRouter();
-  const pathname = usePathname();
-  const dropdownRef = useRef(null);
-
-  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
+  const searchParams = useSearchParams();
+  const accountRef = useRef(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [categoriesOpen, setCategoriesOpen] = useState(false);
+  const [mobileCategoriesOpen, setMobileCategoriesOpen] = useState(false);
+  const [searchType, setSearchType] = useState("products");
   const [cartCount, setCartCount] = useState(0);
-  const [socialProviders, setSocialProviders] = useState({});
   const token = useSyncExternalStore(subscribeToAuthCookie, getToken, getServerToken);
   const user = token ? decodeToken(token) : null;
   const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-  const socialLoginUrl = (provider) => `${API}/api/auth/${provider}`;
-  const userName =
-    user?.name ||
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ").trim() ||
-    user?.email?.split("@")[0] ||
-    (user?.id ? `User ${user.id}` : "there");
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setShowProfileDropdown(false);
-      }
+    const closeAccount = (event) => {
+      if (accountRef.current && !accountRef.current.contains(event.target)) setAccountOpen(false);
     };
-
-    if (showProfileDropdown) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [showProfileDropdown]);
+    document.addEventListener("mousedown", closeAccount);
+    return () => document.removeEventListener("mousedown", closeAccount);
+  }, []);
 
   useEffect(() => {
-    const fetchCartCount = async () => {
+    const loadCartCount = async () => {
       if (!token || user?.role !== "CLIENT") {
         setCartCount(0);
         return;
       }
-
       try {
-        const res = await fetch(`${API}/api/cart`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!res.ok) {
-          setCartCount(0);
-          return;
-        }
-
-        const data = await res.json();
-        const count = Array.isArray(data)
-          ? data.reduce((sum, item) => sum + Number(item?.quantity || 0), 0)
-          : 0;
-
-        setCartCount(count);
+        const response = await fetch(`${API}/api/cart`, { headers: { Authorization: `Bearer ${token}` } });
+        if (!response.ok) return setCartCount(0);
+        const items = await response.json();
+        setCartCount(Array.isArray(items) ? items.reduce((total, item) => total + Number(item.quantity || 0), 0) : 0);
       } catch {
         setCartCount(0);
       }
     };
-
-    fetchCartCount();
-
-    window.addEventListener("focus", fetchCartCount);
-    window.addEventListener("cart:changed", fetchCartCount);
-
+    loadCartCount();
+    window.addEventListener("focus", loadCartCount);
+    window.addEventListener("cart:changed", loadCartCount);
     return () => {
-      window.removeEventListener("focus", fetchCartCount);
-      window.removeEventListener("cart:changed", fetchCartCount);
+      window.removeEventListener("focus", loadCartCount);
+      window.removeEventListener("cart:changed", loadCartCount);
     };
   }, [API, token, user?.role]);
 
-  useEffect(() => {
-    const loadSocialProviders = async () => {
-      try {
-        const res = await fetch(`${API}/api/auth/social-config`);
-        const data = await res.json();
-        setSocialProviders(data || {});
-      } catch {
-        setSocialProviders({});
-      }
-    };
-
-    loadSocialProviders();
-  }, [API]);
+  const handleSearch = (event) => {
+    event.preventDefault();
+    const query = String(new FormData(event.currentTarget).get("q") || "").trim();
+    const destination = searchType === "suppliers" ? "/suppliers" : "/products";
+    router.push(query ? `${destination}?q=${encodeURIComponent(query)}` : destination);
+  };
 
   const handleLogout = () => {
     clearTokenCookie();
-    setShowProfileDropdown(false);
+    setAccountOpen(false);
     router.push("/");
+    router.refresh();
   };
 
-  const handleSearch = (event) => {
-    event.preventDefault();
-    const query = searchTerm.trim();
-    router.push(query ? `/?search=${encodeURIComponent(query)}` : "/");
-  };
-
-  const isAdminPage = pathname === "/admin";
-  const isVendorPage = pathname === "/vendor";
+  const dashboard = user?.role === "ADMIN" ? { label: "Admin dashboard", href: "/admin" } : user?.role === "VENDOR" ? { label: "Vendor dashboard", href: "/vendor" } : user?.role === "CLIENT" ? { label: "My account", href: "/account" } : null;
+  const userName = user?.name || [user?.firstName, user?.lastName].filter(Boolean).join(" ") || user?.email?.split("@")[0] || "Account";
 
   return (
-    <nav className="sticky top-0 z-40 border-b border-gray-200 bg-white text-gray-900 shadow-sm">
-      <div className="mx-auto flex min-h-14 max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-2 md:flex-nowrap md:px-6">
-        <Link href="/" className="flex items-center gap-3 transition hover:opacity-90">
-          <span className="flex h-10 w-10 items-center justify-center rounded-lg border border-blue-100 bg-blue-50">
-            <img
-              src="/bazara-logo.jpeg"
-              alt="Bazara Logo"
-              className="h-8 w-8 object-contain"
-            />
-          </span>
-          <div className="hidden sm:block">
-            <h1 className="text-lg font-bold leading-5 text-blue-600">Bazara</h1>
-            <p className="text-xs font-medium text-gray-500">Industrial B2B</p>
-          </div>
+    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 text-slate-900 shadow-sm backdrop-blur-xl">
+      <div className="hidden border-b border-slate-200 bg-slate-950 text-slate-300 md:block">
+        <div className="marketplace-container flex min-h-9 items-center justify-between gap-6 text-xs">
+          <p>Welcome to Bazara</p>
+          <nav aria-label="Utility navigation" className="flex items-center gap-5">
+            <Link href="/#featured-products" className="hover:text-white">For buyers</Link>
+            <Link href="/suppliers" className="hover:text-white">For suppliers</Link>
+            <Link href="/rfq" className="hover:text-white">RFQ</Link>
+            <span className="text-slate-500">Help & support</span>
+            {!user && <><Link href="/login" className="font-semibold text-white hover:text-orange-300">Sign in</Link><Link href="/register" className="font-semibold text-white hover:text-orange-300">Register</Link></>}
+          </nav>
+        </div>
+      </div>
+
+      <div className="marketplace-container flex flex-wrap items-center gap-3 py-3 lg:flex-nowrap lg:gap-6">
+        <Link href="/" className="flex shrink-0 items-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orange-600">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-600 text-lg font-black text-white shadow-sm">B</span>
+          <span className="hidden sm:block"><strong className="block text-lg leading-5 tracking-tight">Bazara</strong><span className="text-[11px] font-medium text-slate-500">Business marketplace</span></span>
         </Link>
 
-        <form
-          onSubmit={handleSearch}
-          className="order-3 w-full md:order-2 md:mx-6 md:max-w-2xl md:flex-1"
-        >
-          <div className="flex h-10 overflow-hidden rounded-full border border-gray-200 bg-white shadow-sm focus-within:border-blue-600 focus-within:ring-2 focus-within:ring-blue-100">
-            <input
-              type="search"
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder="Search products or category"
-              className="min-w-0 flex-1 bg-transparent px-5 text-sm text-gray-900 outline-none placeholder:text-gray-400"
-            />
-            <button
-              type="submit"
-              aria-label="Search products"
-              className="flex w-14 items-center justify-center bg-blue-600 text-white transition hover:bg-blue-700"
-            >
-              <Icon name="search" className="h-5 w-5" />
-            </button>
+        <form onSubmit={handleSearch} role="search" className="order-3 w-full lg:order-none lg:flex-1">
+          <div role="tablist" aria-label="Marketplace search type" className="mb-1 flex gap-4 px-1 text-xs font-bold">
+            {["products", "suppliers"].map((type) => <button key={type} type="button" role="tab" aria-selected={searchType === type} onClick={() => setSearchType(type)} className={`border-b-2 pb-1 capitalize focus-visible:outline-2 focus-visible:outline-orange-600 ${searchType === type ? "border-orange-600 text-orange-700" : "border-transparent text-slate-500 hover:text-slate-800"}`}>{type}</button>)}
+          </div>
+          <label htmlFor="marketplace-search" className="sr-only">Search {searchType}</label>
+          <div className="flex h-12 overflow-hidden rounded-xl border-2 border-slate-900 bg-white transition focus-within:border-orange-600 focus-within:ring-2 focus-within:ring-orange-100">
+            <input key={searchParams.get("q") || ""} id="marketplace-search" name="q" type="search" defaultValue={searchParams.get("q") || ""} placeholder="Search products, machinery, components..." className="min-w-0 flex-1 px-4 text-sm outline-none placeholder:text-slate-400" />
+            <Link href="/#visual-search" aria-label="Visual Search coming soon" className="inline-flex w-11 items-center justify-center border-l border-slate-200 text-slate-500 hover:bg-orange-50 hover:text-orange-700 focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-orange-600"><Icon name="package" /></Link>
+            <button type="submit" className="inline-flex w-14 items-center justify-center bg-slate-950 text-white transition hover:bg-orange-700 focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-white" aria-label={`Search ${searchType}`}><Icon name="search" /></button>
           </div>
         </form>
 
-        <div className="order-2 flex items-center gap-1 md:order-3">
-          <div className="hidden items-center gap-1 lg:flex">
-            <Link
-              href="/suppliers"
-              className="rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 hover:text-blue-600"
-            >
-              Suppliers
-            </Link>
-            <Link
-              href="/rfq"
-              className="rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 hover:text-blue-600"
-            >
-              RFQ
-            </Link>
-            <NavIconButton label="Language and currency">
-              <Icon name="globe" />
-              <span className="ml-2 text-sm font-medium">English-INR</span>
-            </NavIconButton>
-            <NavIconButton label="Messages">
-              <Icon name="message" />
-            </NavIconButton>
-            <NavIconButton label="Orders">
-              <Icon name="orders" />
-            </NavIconButton>
-          </div>
-
-          {user?.role === "ADMIN" && !isAdminPage && (
-            <Link
-              href="/admin"
-              className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 hover:text-blue-600 sm:block"
-            >
-              Dashboard
-            </Link>
-          )}
-
-          {user?.role === "ADMIN" && isAdminPage && (
-            <button
-              type="button"
-              onClick={() => router.push("/")}
-              className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 hover:text-blue-600 sm:block"
-            >
-              Home
-            </button>
-          )}
-
-          {user?.role === "VENDOR" && !isVendorPage && (
-            <Link
-              href="/vendor"
-              className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 hover:text-blue-600 sm:block"
-            >
-              My Store
-            </Link>
-          )}
-
-          {user?.role === "VENDOR" && isVendorPage && (
-            <button
-              type="button"
-              onClick={() => router.push("/")}
-              className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 hover:text-blue-600 sm:block"
-            >
-              Home
-            </button>
-          )}
-
-          <Link href="/cart" aria-label="Cart">
-            <span className="relative flex h-10 min-w-10 items-center justify-center rounded-lg border border-gray-200 bg-white px-3 text-gray-700 transition hover:bg-gray-50 hover:text-blue-600">
-              <Icon name="cart" />
-              {cartCount > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-600 px-1 text-xs font-bold text-white ring-2 ring-white">
-                  {cartCount > 99 ? "99+" : cartCount}
-                </span>
-              )}
-              <span className="ml-2 hidden text-sm font-semibold sm:inline">Cart</span>
-            </span>
+        <div className="ml-auto flex shrink-0 items-center gap-1">
+          {dashboard && <Link href={dashboard.href} className="hidden rounded-xl px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-100 md:block">{dashboard.label}</Link>}
+          <Link href="/cart" aria-label={cartCount ? `Cart with ${cartCount} items` : "Cart"} className="relative flex h-11 min-w-11 items-center justify-center rounded-xl text-slate-700 transition hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600">
+            <Icon name="cart" className="h-6 w-6" />
+            {cartCount > 0 && <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-orange-600 px-1 text-[10px] font-bold text-white">{cartCount > 99 ? "99+" : cartCount}</span>}
           </Link>
-
-          <div className="relative" ref={dropdownRef}>
-            <NavIconButton
-              label={user ? "Open account menu" : "Open sign in menu"}
-              active={showProfileDropdown}
-              onClick={() => setShowProfileDropdown((current) => !current)}
-            >
-              <Icon name="user" />
-              {!user && <span className="ml-2 hidden text-sm font-medium sm:inline">Sign in</span>}
-            </NavIconButton>
-
-            {showProfileDropdown && (
-              <div className="absolute right-0 mt-3 w-[min(92vw,23rem)] rounded-xl border border-slate-200 bg-white text-gray-950 shadow-2xl">
-                <span className="absolute -top-2 right-4 h-4 w-4 rotate-45 border-l border-t border-slate-200 bg-white" />
-
-                {!user ? (
-                  <div className="p-5">
-                    <h2 className="text-base font-extrabold">Sign back in</h2>
-                    <Link
-                      href="/login"
-                      onClick={() => setShowProfileDropdown(false)}
-                      className="mt-4 block rounded-lg bg-blue-600 px-5 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-blue-700"
-                    >
-                      Sign in
-                    </Link>
-
-                    {Object.values(socialProviders).some(Boolean) && (
-                      <>
-                        <p className="mt-4 text-center text-xs font-medium text-gray-500">Or continue with</p>
-                        <div className="mt-3 flex items-center justify-center gap-5">
-                          {socialProviders.facebook && (
-                            <a
-                              href={socialLoginUrl("facebook")}
-                              aria-label="Continue with Facebook"
-                              className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1877f2] text-2xl font-bold text-white shadow-sm transition hover:scale-105"
-                            >
-                              f
-                            </a>
-                          )}
-                          {socialProviders.google && (
-                            <a
-                              href={socialLoginUrl("google")}
-                              aria-label="Continue with Google"
-                              className="text-4xl font-bold leading-none transition hover:scale-105"
-                            >
-                              <span className="text-[#4285f4]">G</span>
-                            </a>
-                          )}
-                          {socialProviders.linkedin && (
-                            <a
-                              href={socialLoginUrl("linkedin")}
-                              aria-label="Continue with LinkedIn"
-                              className="flex h-10 w-10 items-center justify-center rounded-full bg-[#2867b2] text-base font-bold text-white shadow-sm transition hover:scale-105"
-                            >
-                              in
-                            </a>
-                          )}
-                        </div>
-                      </>
-                    )}
-
-                    <p className="mt-4 text-xs leading-5 text-gray-500">
-                      By signing in, you agree to the{" "}
-                      <span className="underline">Bazara Membership Agreement</span> and{" "}
-                      <span className="underline">Privacy Policy</span>.
-                    </p>
-
-                    <div className="mt-4 grid grid-cols-2 gap-x-4 border-t border-gray-200 pt-3">
-                      {menuItems.map((item) => (
-                        <Link
-                          key={item.label}
-                          href={item.href}
-                          onClick={() => setShowProfileDropdown(false)}
-                          className="block py-2 text-sm font-medium text-gray-700 transition hover:text-blue-600"
-                        >
-                          {item.label}
-                        </Link>
-                      ))}
-                    </div>
-
-                    <Link
-                      href="/register"
-                      onClick={() => setShowProfileDropdown(false)}
-                      className="mt-2 block rounded-lg bg-gray-50 px-3 py-2 text-sm font-bold text-gray-800 transition hover:bg-blue-50 hover:text-blue-600"
-                    >
-                      Membership program
-                    </Link>
-                  </div>
-                ) : (
-                  <div className="p-5">
-                    <h2 className="text-base font-extrabold">Hi, {userName}</h2>
-                    <div className="mt-4 grid grid-cols-2 gap-x-4 border-t border-gray-200 pt-3">
-                      {menuItems.map((item) => (
-                        <Link
-                          key={item.label}
-                          href={item.href}
-                          onClick={() => setShowProfileDropdown(false)}
-                          className="block py-2 text-sm font-medium text-gray-700 transition hover:text-blue-600"
-                        >
-                          {item.label}
-                        </Link>
-                      ))}
-                    </div>
-
-                    <div className="mt-3 border-t border-gray-200 pt-3">
-                      <button
-                        type="button"
-                        onClick={handleLogout}
-                        className="rounded-lg px-3 py-2 text-left text-sm font-bold text-gray-800 transition hover:bg-red-50 hover:text-red-600"
-                      >
-                        Sign out
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
+          <div ref={accountRef} className="relative">
+            <button type="button" onClick={() => setAccountOpen((open) => !open)} aria-expanded={accountOpen} aria-label="Account menu" className="flex h-11 items-center gap-2 rounded-xl px-2 text-slate-700 transition hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600 sm:px-3"><Icon name="account" className="h-6 w-6" /><span className="hidden max-w-28 truncate text-sm font-bold sm:block">{user ? userName : "Sign in"}</span></button>
+            {accountOpen && <div className="absolute right-0 top-[calc(100%+0.65rem)] w-64 rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl shadow-slate-900/15">
+              {user ? <><div className="px-3 py-2"><p className="truncate text-sm font-bold text-slate-950">{userName}</p><p className="mt-0.5 text-xs uppercase tracking-wide text-slate-500">{user.role?.toLowerCase()} account</p></div>{dashboard && <Link href={dashboard.href} className="block rounded-xl px-3 py-2.5 text-sm font-semibold hover:bg-slate-100">{dashboard.label}</Link>}{user.role === "CLIENT" && <Link href="/cart" className="block rounded-xl px-3 py-2.5 text-sm font-semibold hover:bg-slate-100">My cart</Link>}<button type="button" onClick={handleLogout} className="mt-1 w-full rounded-xl border-t border-slate-100 px-3 py-2.5 text-left text-sm font-semibold text-rose-700 hover:bg-rose-50">Sign out</button></> : <><p className="px-3 py-2 text-sm text-slate-600">Sign in to manage enquiries and marketplace activity.</p><Link href="/login" className="mt-2 block rounded-xl bg-slate-950 px-4 py-2.5 text-center text-sm font-bold text-white hover:bg-orange-700">Sign in</Link><Link href="/register" className="mt-2 block rounded-xl px-4 py-2.5 text-center text-sm font-bold text-orange-700 hover:bg-orange-50">Create account</Link></>}
+            </div>}
           </div>
+          <button type="button" onClick={() => setMobileOpen((open) => !open)} aria-expanded={mobileOpen} aria-label="Toggle navigation" className="flex h-11 w-11 items-center justify-center rounded-xl text-slate-700 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600 lg:hidden"><Icon name={mobileOpen ? "close" : "menu"} className="h-6 w-6" /></button>
         </div>
       </div>
-    </nav>
+
+      <nav aria-label="Marketplace navigation" className="hidden border-t border-slate-200 lg:block">
+        <div className="marketplace-container flex h-11 items-center gap-7 overflow-x-auto"><button type="button" onClick={() => setCategoriesOpen((value) => !value)} onMouseEnter={() => setCategoriesOpen(true)} aria-expanded={categoriesOpen} aria-controls="category-mega-menu" className="inline-flex shrink-0 items-center gap-2 text-sm font-semibold text-slate-700 hover:text-orange-700 focus-visible:outline-2 focus-visible:outline-orange-600"><Icon name="categories" className="h-4 w-4" />All categories</button>{primaryLinks.map((link) => <Link key={link.label} href={link.href} className="inline-flex shrink-0 items-center gap-2 text-sm font-semibold text-slate-700 hover:text-orange-700">{link.label}</Link>)}</div>
+      </nav>
+      {mobileOpen && <nav aria-label="Mobile marketplace navigation" className="border-t border-slate-200 bg-white px-4 py-3 lg:hidden"><div className="mx-auto grid max-w-7xl gap-1"><button type="button" onClick={() => { setMobileOpen(false); setMobileCategoriesOpen(true); }} aria-expanded={mobileCategoriesOpen} aria-controls="mobile-category-panel" className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-left text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-orange-700"><Icon name="categories" className="h-4 w-4" />All categories</button>{primaryLinks.map((link) => <Link key={link.label} href={link.href} onClick={() => setMobileOpen(false)} className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-orange-700">{link.label}</Link>)}</div></nav>}
+      <MarketplaceMegaMenu open={categoriesOpen} onClose={() => setCategoriesOpen(false)} viewerRole={user?.role} />
+      <MarketplaceMegaMenu open={mobileCategoriesOpen} onClose={() => setMobileCategoriesOpen(false)} viewerRole={user?.role} mobile />
+    </header>
   );
+}
+
+export default function Navbar() {
+  return <Suspense fallback={<div className="h-[7.25rem] border-b border-slate-200 bg-white md:h-[9.5rem]" />}><NavbarContent /></Suspense>;
 }

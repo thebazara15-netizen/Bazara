@@ -30,6 +30,22 @@ exports.getOrders = async (req, res) => {
   }
 };
 
+exports.getSuppliers = async (req, res) => {
+  try {
+    res.json(await adminService.getSuppliers());
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.getRfqs = async (req, res) => {
+  try {
+    res.json(await adminService.getRfqs());
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 exports.getProducts = async (req, res) => {
   try {
     const products = await adminService.getProducts();

@@ -6,7 +6,7 @@ const serializeInquiry = async (inquiry) => {
   const data = inquiry.toJSON();
   const [product, buyer, vendor] = await Promise.all([
     Product.findByPk(data.productId),
-    User.findByPk(data.buyerId, { attributes: ['id', 'email', 'firstName', 'lastName', 'companyName', 'phone'] }),
+    User.findByPk(data.buyerId, { attributes: ['id', 'firstName', 'lastName', 'companyName'] }),
     User.findByPk(data.vendorId, { attributes: ['id', 'companyName', 'firstName', 'lastName', 'isVerified'] })
   ]);
 
