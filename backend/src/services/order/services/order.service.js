@@ -29,7 +29,7 @@ exports.placeOrder = async (userId) => {
   }
 
   const order = await Order.create({
-    userId,
+    buyerId: userId,
     totalAmount
   });
 

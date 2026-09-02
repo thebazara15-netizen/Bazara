@@ -25,11 +25,16 @@ exports.approveVendor = async (id) => {
 };
 
 exports.getOrders = async () => {
-  const orders = await Order.findAll({ attributes: ['id', 'userId', 'totalAmount', 'status', 'createdAt'], order: [['createdAt', 'DESC']] });
-  const buyerIds = [...new Set(orders.map((order) => order.userId).filter(Boolean))];
-  const buyers = buyerIds.length ? await User.findAll({ where: { id: { [Op.in]: buyerIds } }, attributes: ['id', 'firstName', 'lastName', 'companyName', 'email'] }) : [];
-  const buyerMap = new Map(buyers.map((buyer) => [Number(buyer.id), buyer.toJSON()]));
-  return orders.map((order) => ({ ...order.toJSON(), buyer: buyerMap.get(Number(order.userId)) || null }));
+  return Order.findAll({
+    attributes: ['id', 'buyerId', 'totalAmount', 'status', 'createdAt'],
+    include: [{
+      model: User,
+      as: 'buyer',
+      attributes: ['id', 'firstName', 'lastName', 'companyName', 'email'],
+      required: false
+    }],
+    order: [['createdAt', 'DESC']]
+  });
 };
 
 exports.getSuppliers = async () => {

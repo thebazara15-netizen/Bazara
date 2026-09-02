@@ -2,7 +2,13 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
 const Order = sequelize.define('Order', {
-  userId: DataTypes.INTEGER,
+  buyerId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: { model: 'Users', key: 'id' },
+    onUpdate: 'CASCADE',
+    onDelete: 'RESTRICT'
+  },
 
   totalAmount: DataTypes.FLOAT,
 
