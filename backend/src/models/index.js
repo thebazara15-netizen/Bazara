@@ -9,6 +9,7 @@ const RFQ = require('./RFQ');
 const Quote = require('./Quote');
 const Inquiry = require('./Inquiry');
 const WishlistItem = require('./WishlistItem');
+const Address = require('./Address');
 
 // Define associations
 User.hasMany(Product, { as: 'products', foreignKey: 'vendorId' });
@@ -45,6 +46,9 @@ WishlistItem.belongsTo(User, { as: 'user', foreignKey: 'userId' });
 Product.hasMany(WishlistItem, { as: 'wishlistItems', foreignKey: 'productId' });
 WishlistItem.belongsTo(Product, { as: 'product', foreignKey: 'productId' });
 
+User.hasMany(Address, { as: 'addresses', foreignKey: 'userId' });
+Address.belongsTo(User, { as: 'user', foreignKey: 'userId' });
+
 module.exports = {
   sequelize,
   User,
@@ -56,5 +60,6 @@ module.exports = {
   RFQ,
   Quote,
   Inquiry,
-  WishlistItem
+  WishlistItem,
+  Address
 };

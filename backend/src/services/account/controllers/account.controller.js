@@ -1,4 +1,6 @@
 const User = require('../../../models/user');
+const addressService = require('../address.service');
+const { AddressError } = require('../address.validation');
 
 const safeFields = [
   'id', 'email', 'firstName', 'lastName', 'companyName',
@@ -41,4 +43,28 @@ exports.updateProfile = async (req, res) => {
   } catch {
     return res.status(500).json({ message: 'Unable to update buyer profile' });
   }
+};
+
+const addressError = (res, error) => error instanceof AddressError
+  ? res.status(error.status).json({ message: error.message, code: error.code })
+  : res.status(500).json({ message: 'Unable to process address request', code: 'ADDRESS_SERVER_ERROR' });
+
+exports.getAddresses = async (req, res) => {
+  try { return res.json(await addressService.list(req.user.id)); }
+  catch (error) { return addressError(res, error); }
+};
+
+exports.createAddress = async (req, res) => {
+  try { return res.status(201).json(await addressService.create(req.user.id, req.body)); }
+  catch (error) { return addressError(res, error); }
+};
+
+exports.updateAddress = async (req, res) => {
+  try { return res.json(await addressService.update(req.user.id, req.params.id, req.body)); }
+  catch (error) { return addressError(res, error); }
+};
+
+exports.deleteAddress = async (req, res) => {
+  try { await addressService.remove(req.user.id, req.params.id); return res.json({ message: 'Address removed' }); }
+  catch (error) { return addressError(res, error); }
 };
