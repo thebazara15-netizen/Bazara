@@ -1,6 +1,7 @@
 const Inquiry = require('../../../models/Inquiry');
 const Product = require('../../../models/Product');
 const User = require('../../../models/user');
+const inboxService = require('../../inbox/inbox.service');
 
 const serializeInquiry = async (inquiry) => {
   const data = inquiry.toJSON();
@@ -25,13 +26,7 @@ exports.createInquiry = async (req, res) => {
     if (!product) return res.status(404).json({ message: 'Product not found' });
     if (!product.vendorId) return res.status(400).json({ message: 'Product has no vendor assigned' });
 
-    const inquiry = await Inquiry.create({
-      productId: product.id,
-      vendorId: product.vendorId,
-      buyerId: req.user.id,
-      quantity: quantity ? Number(quantity) : Number(product.moq || 1),
-      message
-    });
+    const { inquiry } = await inboxService.createInquiry(product, req.user.id, { quantity, message });
 
     res.status(201).json(await serializeInquiry(inquiry));
   } catch (error) {

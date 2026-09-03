@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 const items = [
-  ["overview", "Overview"], ["products", "My Products"], ["add", "Add Product"],
+  ["overview", "Overview"], ["inbox", "Inbox"], ["products", "My Products"], ["add", "Add Product"],
   ["pricing", "Tax & Shipping"],
   ["inquiries", "Buyer Inquiries"], ["rfqs", "Open RFQs"], ["quotes", "My Quotations"]
 ];

@@ -19,6 +19,9 @@ const SellerShippingPolicy = require('./SellerShippingPolicy');
 const InventoryReservation = require('./InventoryReservation');
 const PaymentAttempt = require('./PaymentAttempt');
 const PaymentEvent = require('./PaymentEvent');
+const Conversation = require('./Conversation');
+const ConversationParticipant = require('./ConversationParticipant');
+const Message = require('./Message');
 
 // Define associations
 User.hasMany(Product, { as: 'products', foreignKey: 'vendorId' });
@@ -46,9 +49,12 @@ RFQ.hasMany(Quote, { as: 'quotes', foreignKey: 'rfqId' });
 Quote.belongsTo(RFQ, { as: 'rfq', foreignKey: 'rfqId' });
 Quote.belongsTo(User, { as: 'vendor', foreignKey: 'vendorId' });
 
-User.hasMany(Inquiry, { as: 'inquiries', foreignKey: 'fromUserId' });
-Inquiry.belongsTo(User, { as: 'sender', foreignKey: 'fromUserId' });
-Inquiry.belongsTo(User, { as: 'recipient', foreignKey: 'toUserId' });
+User.hasMany(Inquiry, { as: 'buyerInquiries', foreignKey: 'buyerId' });
+Inquiry.belongsTo(User, { as: 'buyer', foreignKey: 'buyerId' });
+User.hasMany(Inquiry, { as: 'vendorInquiries', foreignKey: 'vendorId' });
+Inquiry.belongsTo(User, { as: 'vendor', foreignKey: 'vendorId' });
+Product.hasMany(Inquiry, { as: 'inquiries', foreignKey: 'productId' });
+Inquiry.belongsTo(Product, { as: 'product', foreignKey: 'productId' });
 
 User.hasMany(WishlistItem, { as: 'wishlistItems', foreignKey: 'userId' });
 WishlistItem.belongsTo(User, { as: 'user', foreignKey: 'userId' });
@@ -92,6 +98,14 @@ PaymentAttempt.belongsTo(User, { as: 'buyer', foreignKey: 'buyerId' });
 PaymentAttempt.hasMany(PaymentEvent, { as: 'paymentEvents', foreignKey: 'paymentAttemptId' });
 PaymentEvent.belongsTo(PaymentAttempt, { as: 'paymentAttempt', foreignKey: 'paymentAttemptId' });
 
+User.hasMany(Conversation,{as:'buyerConversations',foreignKey:'buyerId'});Conversation.belongsTo(User,{as:'buyer',foreignKey:'buyerId'});
+User.hasMany(Conversation,{as:'vendorConversations',foreignKey:'vendorId'});Conversation.belongsTo(User,{as:'vendor',foreignKey:'vendorId'});
+Inquiry.hasOne(Conversation,{as:'conversation',foreignKey:'inquiryId'});Conversation.belongsTo(Inquiry,{as:'inquiry',foreignKey:'inquiryId'});
+Conversation.hasMany(ConversationParticipant,{as:'participants',foreignKey:'conversationId'});ConversationParticipant.belongsTo(Conversation,{as:'conversation',foreignKey:'conversationId'});
+User.hasMany(ConversationParticipant,{as:'conversationMemberships',foreignKey:'userId'});ConversationParticipant.belongsTo(User,{as:'user',foreignKey:'userId'});
+Conversation.hasMany(Message,{as:'messages',foreignKey:'conversationId'});Message.belongsTo(Conversation,{as:'conversation',foreignKey:'conversationId'});
+User.hasMany(Message,{as:'sentMessages',foreignKey:'senderId'});Message.belongsTo(User,{as:'sender',foreignKey:'senderId'});
+
 User.hasOne(SellerTaxProfile, { as: 'taxProfile', foreignKey: 'vendorId' });
 SellerTaxProfile.belongsTo(User, { as: 'vendor', foreignKey: 'vendorId' });
 User.hasOne(SellerShippingPolicy, { as: 'shippingPolicy', foreignKey: 'vendorId' });
@@ -118,5 +132,8 @@ module.exports = {
   SellerShippingPolicy,
   InventoryReservation,
   PaymentAttempt,
-  PaymentEvent
+  PaymentEvent,
+  Conversation,
+  ConversationParticipant,
+  Message
 };

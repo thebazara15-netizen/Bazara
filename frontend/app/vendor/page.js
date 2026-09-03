@@ -11,6 +11,7 @@ import VendorInquiries from "../../components/marketplace/vendor/VendorInquiries
 import VendorRfqs from "../../components/marketplace/vendor/VendorRfqs";
 import VendorQuotes from "../../components/marketplace/vendor/VendorQuotes";
 import VendorPricingConfig from "../../components/marketplace/vendor/VendorPricingConfig";
+import InboxPanel from "../../components/marketplace/inbox/InboxPanel";
 import { ConfirmDialog, VendorFeedback, VendorLoading, VendorPending } from "../../components/marketplace/vendor/VendorState";
 
 const API = "/api";
@@ -122,6 +123,7 @@ export default function VendorDashboard() {
   const savePricing = async (value) => { setBusy(true); setFeedback(null); try { const saved = await request("/vendor/pricing-config", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(value) }); setPricingConfig(saved); setFeedback({ type: "success", message: "Tax and shipping configuration saved." }); } catch (error) { setFeedback({ type: "error", message: error.message }); } finally { setBusy(false); } };
   const submittedIds = new Set(quotes.map((quote) => quote.rfqId));
   const content = active === "overview" ? <VendorOverview counts={{ products: products.length, inquiries: inquiries.length, rfqs: rfqs.length, quotes: quotes.length }} onNavigate={navigate}/>
+    : active === "inbox" ? <InboxPanel token={token} role="VENDOR"/>
     : active === "products" ? <VendorProducts products={products} onAdd={() => navigate("add")} onEdit={(product) => { setEditing(product); setActive("add"); }} onDelete={setDeleting}/>
     : active === "add" ? <VendorProductForm product={editing} busy={busy} onCancel={() => navigate("products")} onSubmit={saveProduct} onError={(message) => setFeedback(message ? { type: "error", message } : null)}/>
     : active === "pricing" ? <VendorPricingConfig config={pricingConfig} busy={busy} onSave={savePricing} onError={(message) => setFeedback({ type: "error", message })}/>

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 
-const items = [["overview","Overview"],["profile","Profile"],["addresses","Addresses"],["wishlist","Saved Products"],["rfqs","My RFQs"],["inquiries","My Inquiries"],["cart","Cart"]];
+const items = [["overview","Overview"],["inbox","Inbox"],["profile","Profile"],["addresses","Addresses"],["wishlist","Saved Products"],["rfqs","My RFQs"],["inquiries","My Inquiries"],["cart","Cart"]];
 
 export default function AccountShell({ active, onNavigate, children }) {
   const [open, setOpen] = useState(false);

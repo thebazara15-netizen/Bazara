@@ -116,6 +116,12 @@ try {
 } catch (e) {
   logger.error('supplierRoutes error', e);
 }
+try {
+  const inboxRoutes = require('./services/inbox/routes/inbox.routes');
+  app.use('/api/inbox', inboxRoutes);
+} catch (e) {
+  logger.error('inboxRoutes error', e);
+}
 
 try {
   const vendorPricingRoutes = require('./services/vendor-pricing/routes/vendor-pricing.routes');

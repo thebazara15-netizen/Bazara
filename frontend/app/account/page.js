@@ -13,6 +13,7 @@ import AccountRfqs from "../../components/marketplace/account/AccountRfqs";
 import AccountInquiries from "../../components/marketplace/account/AccountInquiries";
 import AccountCart from "../../components/marketplace/account/AccountCart";
 import { AccountFeedback, AccountLoading } from "../../components/marketplace/account/AccountState";
+import InboxPanel from "../../components/marketplace/inbox/InboxPanel";
 
 export default function AccountPage() {
   const router = useRouter();
@@ -43,6 +44,6 @@ export default function AccountPage() {
   const decideQuote=async(quoteId,status)=>{setDecisionId(quoteId);try{await request(`/rfqs/quotes/${quoteId}/status`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({status})});await load();setFeedback({type:"success",message:status==="ACCEPTED"?"Quotation accepted.":"Quotation rejected."});}catch(error){setFeedback({type:"error",message:error.message});}finally{setDecisionId(null);}};
   const cartProducts=new Set(cart.map((item)=>Number(item.productId)));
   const cartCount=cart.reduce((sum,item)=>sum+Number(item.quantity||0),0);
-  const content=active==="overview"?<AccountOverview counts={{wishlist:wishlistItems.length,cart:cartCount,rfqs:rfqs.length,inquiries:inquiries.length}} onNavigate={setActive}/>:active==="profile"?<AccountProfile key={profile?.id} profile={profile} saving={saving} onSave={saveProfile}/>:active==="addresses"?<AccountAddresses addresses={addresses} saving={saving} onCreate={createAddress} onUpdate={updateAddress} onDelete={deleteAddress}/>:active==="wishlist"?<AccountWishlist items={wishlistItems} cartProducts={cartProducts} onAddToCart={addToCart}/>:active==="rfqs"?<AccountRfqs rfqs={rfqs} decisionId={decisionId} onDecision={decideQuote}/>:active==="inquiries"?<AccountInquiries inquiries={inquiries}/>:<AccountCart items={cart}/>;
+  const content=active==="inbox"?<InboxPanel token={token} role="CLIENT"/>:active==="overview"?<AccountOverview counts={{wishlist:wishlistItems.length,cart:cartCount,rfqs:rfqs.length,inquiries:inquiries.length}} onNavigate={setActive}/>:active==="profile"?<AccountProfile key={profile?.id} profile={profile} saving={saving} onSave={saveProfile}/>:active==="addresses"?<AccountAddresses addresses={addresses} saving={saving} onCreate={createAddress} onUpdate={updateAddress} onDelete={deleteAddress}/>:active==="wishlist"?<AccountWishlist items={wishlistItems} cartProducts={cartProducts} onAddToCart={addToCart}/>:active==="rfqs"?<AccountRfqs rfqs={rfqs} decisionId={decisionId} onDecision={decideQuote}/>:active==="inquiries"?<AccountInquiries inquiries={inquiries}/>:<AccountCart items={cart}/>;
   return <AccountShell active={active} onNavigate={(section)=>{setActive(section);window.scrollTo({top:0,behavior:"smooth"});}}><AccountFeedback feedback={feedback} onDismiss={()=>setFeedback(null)}/>{loading?<AccountLoading/>:content}</AccountShell>;
 }
