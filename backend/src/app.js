@@ -115,6 +115,13 @@ try {
   logger.error('supplierRoutes error', e);
 }
 
+try {
+  const vendorPricingRoutes = require('./services/vendor-pricing/routes/vendor-pricing.routes');
+  app.use('/api/vendor/pricing-config', vendorPricingRoutes);
+} catch (e) {
+  logger.error('vendorPricingRoutes error', e);
+}
+
 app.get('/', (req, res) => {
   res.send('API is running...');
 });

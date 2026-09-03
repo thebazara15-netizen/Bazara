@@ -17,7 +17,7 @@ const CheckoutDraft = sequelize.define('CheckoutDraft', {
   taxPaise: { type: DataTypes.BIGINT, allowNull: true },
   discountPaise: { type: DataTypes.BIGINT, allowNull: true },
   grandTotalPaise: { type: DataTypes.BIGINT, allowNull: true },
-  pricingStatus: { type: DataTypes.ENUM('PARTIAL', 'READY'), allowNull: false, defaultValue: 'PARTIAL' },
+  pricingStatus: { type: DataTypes.ENUM('PARTIAL', 'READY', 'FREIGHT_QUOTE_REQUIRED'), allowNull: false, defaultValue: 'PARTIAL' },
   expiresAt: { type: DataTypes.DATE, allowNull: false }
 }, {
   indexes: [

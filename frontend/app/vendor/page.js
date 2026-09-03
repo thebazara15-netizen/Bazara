@@ -10,6 +10,7 @@ import VendorProductForm from "../../components/marketplace/vendor/VendorProduct
 import VendorInquiries from "../../components/marketplace/vendor/VendorInquiries";
 import VendorRfqs from "../../components/marketplace/vendor/VendorRfqs";
 import VendorQuotes from "../../components/marketplace/vendor/VendorQuotes";
+import VendorPricingConfig from "../../components/marketplace/vendor/VendorPricingConfig";
 import { ConfirmDialog, VendorFeedback, VendorLoading, VendorPending } from "../../components/marketplace/vendor/VendorState";
 
 const API = "/api";
@@ -22,6 +23,7 @@ export default function VendorDashboard() {
   const [inquiries, setInquiries] = useState([]);
   const [rfqs, setRfqs] = useState([]);
   const [quotes, setQuotes] = useState([]);
+  const [pricingConfig, setPricingConfig] = useState(null);
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState(false);
   const [feedback, setFeedback] = useState(null);
@@ -46,14 +48,15 @@ export default function VendorDashboard() {
   const load = useCallback(async () => {
     if (!token) return;
     try {
-      const [productData, inquiryData, rfqData, quoteData] = await Promise.all([
+      const [productData, inquiryData, rfqData, quoteData, pricingData] = await Promise.all([
         request("/products/vendor/my-products"), request("/inquiries/vendor"),
-        request("/rfqs"), request("/rfqs/vendor/quotes")
+        request("/rfqs"), request("/rfqs/vendor/quotes"), request("/vendor/pricing-config")
       ]);
       setProducts(Array.isArray(productData) ? productData : []);
       setInquiries(Array.isArray(inquiryData) ? inquiryData : []);
       setRfqs(Array.isArray(rfqData) ? rfqData : []);
       setQuotes(Array.isArray(quoteData) ? quoteData : []);
+      setPricingConfig(pricingData);
       setPending(false);
     } catch (error) {
       if (error.status === 403 && error.message.toLowerCase().includes("awaiting")) setPending(true);
@@ -116,10 +119,12 @@ export default function VendorDashboard() {
   };
 
   const navigate = (section) => { setActive(section); if (section !== "add") setEditing(null); window.scrollTo({ top: 0, behavior: "smooth" }); };
+  const savePricing = async (value) => { setBusy(true); setFeedback(null); try { const saved = await request("/vendor/pricing-config", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(value) }); setPricingConfig(saved); setFeedback({ type: "success", message: "Tax and shipping configuration saved." }); } catch (error) { setFeedback({ type: "error", message: error.message }); } finally { setBusy(false); } };
   const submittedIds = new Set(quotes.map((quote) => quote.rfqId));
   const content = active === "overview" ? <VendorOverview counts={{ products: products.length, inquiries: inquiries.length, rfqs: rfqs.length, quotes: quotes.length }} onNavigate={navigate}/>
     : active === "products" ? <VendorProducts products={products} onAdd={() => navigate("add")} onEdit={(product) => { setEditing(product); setActive("add"); }} onDelete={setDeleting}/>
     : active === "add" ? <VendorProductForm product={editing} busy={busy} onCancel={() => navigate("products")} onSubmit={saveProduct} onError={(message) => setFeedback(message ? { type: "error", message } : null)}/>
+    : active === "pricing" ? <VendorPricingConfig config={pricingConfig} busy={busy} onSave={savePricing} onError={(message) => setFeedback({ type: "error", message })}/>
     : active === "inquiries" ? <VendorInquiries inquiries={inquiries} busyId={inquiryBusyId} onStatus={updateInquiry}/>
     : active === "rfqs" ? <VendorRfqs rfqs={rfqs} drafts={drafts} onDraftChange={(id, value) => setDrafts((current) => ({ ...current, [id]: value }))} onQuote={submitQuote} submittingId={submittingQuoteId} submittedRfqIds={submittedIds}/>
     : <VendorQuotes quotes={quotes}/>;

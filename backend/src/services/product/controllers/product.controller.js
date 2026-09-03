@@ -63,14 +63,23 @@ const normalizeProductInput = (data, currentProduct = {}) => {
   const stock = Number(data.stock ?? currentProduct.stock ?? 0);
   const basePrice = Number(data.basePrice ?? currentProduct.basePrice);
   const pricingTiers = parsePricingTiers(data.pricingTiers ?? currentProduct.pricingTiers ?? []);
+  const hsnCode = String(data.hsnCode ?? currentProduct.hsnCode ?? '').trim() || null;
+  const rawGstRate = data.gstRateBasisPoints ?? currentProduct.gstRateBasisPoints;
+  const gstRateBasisPoints = rawGstRate === undefined || rawGstRate === null || rawGstRate === '' ? null : Number(rawGstRate);
+  const unit = String(data.unit ?? currentProduct.unit ?? '').trim() || null;
+  const rawTaxInclusive = data.taxInclusive ?? currentProduct.taxInclusive ?? false;
+  const taxInclusive = rawTaxInclusive === true || rawTaxInclusive === 'true';
 
   if (!name || name.length > 255 || !Number.isInteger(moq) || moq <= 0 ||
       !Number.isInteger(stock) || stock < 0 || !Number.isFinite(basePrice) || basePrice < 0 ||
-      pricingTiers === null || pricingTiers.some((tier) => tier.minQty < moq)) {
+      pricingTiers === null || pricingTiers.some((tier) => tier.minQty < moq) ||
+      (hsnCode !== null && !/^\d{4,20}$/.test(hsnCode)) ||
+      (gstRateBasisPoints !== null && (!Number.isInteger(gstRateBasisPoints) || gstRateBasisPoints < 0 || gstRateBasisPoints > 10000)) ||
+      (unit !== null && unit.length > 30)) {
     return null;
   }
 
-  return { name, description, category, moq, stock, basePrice, pricingTiers };
+  return { name, description, category, moq, stock, basePrice, pricingTiers, hsnCode, gstRateBasisPoints, unit, taxInclusive };
 };
 
 async function cleanupRequestUploads(files) {
@@ -239,7 +248,7 @@ exports.updateVendorProduct = async (req, res) => {
       ...productInput,
       finalPrice: getDisplayPrice({ ...product.toJSON(), ...productInput })
     }, {
-      fields: ['name', 'description', 'category', 'moq', 'stock', 'basePrice', 'pricingTiers', 'finalPrice']
+      fields: ['name', 'description', 'category', 'moq', 'stock', 'basePrice', 'pricingTiers', 'finalPrice', 'hsnCode', 'gstRateBasisPoints', 'unit', 'taxInclusive']
     });
 
     return res.json(serializeProduct(req, product));

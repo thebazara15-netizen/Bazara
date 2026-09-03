@@ -5,6 +5,7 @@ import { useState } from "react";
 
 const items = [
   ["overview", "Overview"], ["products", "My Products"], ["add", "Add Product"],
+  ["pricing", "Tax & Shipping"],
   ["inquiries", "Buyer Inquiries"], ["rfqs", "Open RFQs"], ["quotes", "My Quotations"]
 ];
 

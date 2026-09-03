@@ -1,15 +1,15 @@
 'use strict';
 
 const { Op, UniqueConstraintError } = require('sequelize');
-const { sequelize, CheckoutDraft, Address, Product, User } = require('../../models');
+const { sequelize, CheckoutDraft, Address, Product, User, SellerTaxProfile, SellerShippingPolicy } = require('../../models');
 const cartService = require('../cart/services/cart.service');
 const { addressSnapshot, buildMarketplaceOrderDraft } = require('../order/marketplace-order-snapshot.service');
 const { cartFingerprint } = require('./cart-fingerprint');
 const { CheckoutError, positiveId, createInput } = require('./checkout.validation');
+const { priceCheckoutSnapshot } = require('../pricing/checkout-pricing');
 
-const PRODUCT_ATTRIBUTES = ['id', 'name', 'description', 'images', 'vendorId', 'moq', 'stock', 'updatedAt'];
+const PRODUCT_ATTRIBUTES = ['id', 'name', 'description', 'images', 'vendorId', 'moq', 'stock', 'updatedAt', 'hsnCode', 'gstRateBasisPoints', 'unit', 'taxInclusive'];
 const VENDOR_ATTRIBUTES = ['id', 'role', 'companyName', 'firstName', 'lastName', 'location', 'gstNumber'];
-const IMMUTABLE_UNIT = 'piece'; // Current catalogue and cart pricing are explicitly per piece.
 
 function ttlMinutes() {
   const parsed = Number.parseInt(process.env.CHECKOUT_DRAFT_TTL_MINUTES, 10);
@@ -65,6 +65,8 @@ function serialize(draft, overrides = {}) {
     discountPaise: raw.discountPaise == null ? null : Number(raw.discountPaise),
     grandTotalPaise: raw.grandTotalPaise == null ? null : Number(raw.grandTotalPaise),
     paymentReady: false,
+    paymentPreparationReady: raw.pricingStatus === 'READY',
+    missingRequirements: snapshot?.pricing?.missingRequirements || [],
     stale: false,
     ...overrides
   };
@@ -87,8 +89,14 @@ async function createDraft(buyerId, body, req) {
     if (compatible(existing)) return serialize(existing, { idempotentReplay: true });
     throw new CheckoutError('Idempotency key was already used for different or expired checkout inputs', 409, 'IDEMPOTENCY_CONFLICT');
   }
-  const validatedCart = { ...context.cart, items: context.cart.items.map((item) => ({ ...item, unit: IMMUTABLE_UNIT })) };
-  const orderSnapshot = buildMarketplaceOrderDraft({ buyer: context.buyer, shippingAddress: shipping, billingAddress: billing, validatedCart, products: context.products, vendors: context.vendors });
+  const validatedCart = { ...context.cart, items: context.cart.items.map((item) => ({ ...item, unit: context.productMap.get(Number(item.productId)).unit || 'UNSPECIFIED' })) };
+  const baseSnapshot = buildMarketplaceOrderDraft({ buyer: context.buyer, shippingAddress: shipping, billingAddress: billing, validatedCart, products: context.products, vendors: context.vendors });
+  const vendorIds = context.vendors.map((vendor) => Number(vendor.id));
+  const [taxProfiles, shippingPolicies] = await Promise.all([
+    SellerTaxProfile.findAll({ where: { vendorId: { [Op.in]: vendorIds } } }),
+    SellerShippingPolicy.findAll({ where: { vendorId: { [Op.in]: vendorIds }, isActive: true } })
+  ]);
+  const pricing = priceCheckoutSnapshot({ orderSnapshot: baseSnapshot, products: context.products, taxProfiles, shippingPolicies, placeOfSupplyStateCode: shipping.stateCode });
   const values = {
     buyerId,
     idempotencyKey: input.idempotencyKey,
@@ -97,13 +105,13 @@ async function createDraft(buyerId, body, req) {
     billingAddressId: input.billingAddressId,
     shippingAddressSnapshot: shippingSnapshot,
     billingAddressSnapshot: billingSnapshot,
-    orderSnapshot,
-    subtotalPaise: orderSnapshot.buyerOrder.subtotalPaise,
-    shippingPaise: null,
-    taxPaise: null,
-    discountPaise: null,
-    grandTotalPaise: null,
-    pricingStatus: 'PARTIAL',
+    orderSnapshot: pricing.orderSnapshot,
+    subtotalPaise: pricing.subtotalPaise,
+    shippingPaise: pricing.shippingPaise,
+    taxPaise: pricing.taxPaise,
+    discountPaise: pricing.discountPaise,
+    grandTotalPaise: pricing.grandTotalPaise,
+    pricingStatus: pricing.pricingStatus,
     expiresAt: new Date(Date.now() + ttlMinutes() * 60 * 1000)
   };
   try {

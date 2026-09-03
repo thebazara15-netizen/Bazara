@@ -46,7 +46,11 @@ const Product = sequelize.define('Product', {
 
   vendorId: {
     type: DataTypes.INTEGER
-  }
+  },
+  hsnCode: DataTypes.STRING(20),
+  gstRateBasisPoints: DataTypes.INTEGER,
+  unit: DataTypes.STRING(30),
+  taxInclusive: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false }
 
 }, {
   timestamps: true
