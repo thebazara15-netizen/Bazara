@@ -46,9 +46,12 @@ function createSequelize() {
     });
   }
 
+  const testStorage = process.env.NODE_ENV === 'test' && process.env.TEST_SQLITE_PATH
+    ? path.resolve(process.env.TEST_SQLITE_PATH)
+    : path.resolve(__dirname, '../../data/dev.sqlite');
   return new Sequelize({
     dialect: 'sqlite',
-    storage: path.resolve(__dirname, '../../data/dev.sqlite'),
+    storage: testStorage,
     logging: false
   });
 }

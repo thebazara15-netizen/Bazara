@@ -16,6 +16,7 @@ const BuyerOrderItem = require('./BuyerOrderItem');
 const CheckoutDraft = require('./CheckoutDraft');
 const SellerTaxProfile = require('./SellerTaxProfile');
 const SellerShippingPolicy = require('./SellerShippingPolicy');
+const InventoryReservation = require('./InventoryReservation');
 
 // Define associations
 User.hasMany(Product, { as: 'products', foreignKey: 'vendorId' });
@@ -72,6 +73,15 @@ Address.hasMany(CheckoutDraft, { as: 'shippingCheckoutDrafts', foreignKey: 'ship
 CheckoutDraft.belongsTo(Address, { as: 'shippingAddress', foreignKey: 'shippingAddressId' });
 Address.hasMany(CheckoutDraft, { as: 'billingCheckoutDrafts', foreignKey: 'billingAddressId' });
 CheckoutDraft.belongsTo(Address, { as: 'billingAddress', foreignKey: 'billingAddressId' });
+CheckoutDraft.hasOne(BuyerOrder, { as: 'preparedOrder', foreignKey: 'checkoutDraftId' });
+BuyerOrder.belongsTo(CheckoutDraft, { as: 'checkoutDraft', foreignKey: 'checkoutDraftId' });
+
+BuyerOrder.hasMany(InventoryReservation, { as: 'inventoryReservations', foreignKey: 'buyerOrderId' });
+InventoryReservation.belongsTo(BuyerOrder, { as: 'buyerOrder', foreignKey: 'buyerOrderId' });
+BuyerOrderItem.hasOne(InventoryReservation, { as: 'inventoryReservation', foreignKey: 'buyerOrderItemId' });
+InventoryReservation.belongsTo(BuyerOrderItem, { as: 'buyerOrderItem', foreignKey: 'buyerOrderItemId' });
+Product.hasMany(InventoryReservation, { as: 'inventoryReservations', foreignKey: 'productId' });
+InventoryReservation.belongsTo(Product, { as: 'product', foreignKey: 'productId' });
 
 User.hasOne(SellerTaxProfile, { as: 'taxProfile', foreignKey: 'vendorId' });
 SellerTaxProfile.belongsTo(User, { as: 'vendor', foreignKey: 'vendorId' });
@@ -96,5 +106,6 @@ module.exports = {
   BuyerOrderItem,
   CheckoutDraft,
   SellerTaxProfile,
-  SellerShippingPolicy
+  SellerShippingPolicy,
+  InventoryReservation
 };

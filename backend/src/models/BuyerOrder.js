@@ -13,6 +13,7 @@ const BuyerOrder = sequelize.define('BuyerOrder', {
   grandTotalPaise: money(),
   shippingAddressSnapshot: { type: DataTypes.JSON, allowNull: false },
   billingAddressSnapshot: { type: DataTypes.JSON, allowNull: false },
+  checkoutDraftId: { type: DataTypes.INTEGER, allowNull: true, unique: true },
   checkoutReference: { type: DataTypes.STRING(100), allowNull: true, unique: true }
 }, {
   indexes: [{ name: 'buyer_orders_buyer_id_idx', fields: ['buyerId'] }, { name: 'buyer_orders_status_idx', fields: ['status'] }],

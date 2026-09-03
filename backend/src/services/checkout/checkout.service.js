@@ -20,24 +20,24 @@ function sameJson(left, right) {
   return JSON.stringify(left) === JSON.stringify(right);
 }
 
-async function contextForBuyer(buyerId, req) {
-  const buyer = await User.findOne({ where: { id: buyerId, role: 'CLIENT' }, attributes: ['id', 'role'] });
+async function contextForBuyer(buyerId, req, transaction = null) {
+  const buyer = await User.findOne({ where: { id: buyerId, role: 'CLIENT' }, attributes: ['id', 'role'], transaction });
   if (!buyer) throw new CheckoutError('Client account not found', 404, 'CLIENT_NOT_FOUND');
-  const cart = await cartService.getCart(buyerId, req);
+  const cart = await cartService.getCart(buyerId, req, { transaction });
   if (!cart.items.length) throw new CheckoutError('Cart is empty', 409, 'CART_EMPTY');
   if (!cart.valid || cart.items.some((item) => !item.valid)) throw new CheckoutError('Cart must be corrected before checkout', 409, 'CART_INVALID');
   const productIds = cart.items.map((item) => Number(item.productId));
-  const products = await Product.findAll({ where: { id: { [Op.in]: productIds } }, attributes: PRODUCT_ATTRIBUTES });
+  const products = await Product.findAll({ where: { id: { [Op.in]: productIds } }, attributes: PRODUCT_ATTRIBUTES, order: [['id', 'ASC']], transaction, lock: transaction ? transaction.LOCK.UPDATE : undefined });
   if (products.length !== productIds.length) throw new CheckoutError('A cart product is no longer available', 409, 'CART_PRODUCT_UNAVAILABLE');
   const productMap = new Map(products.map((product) => [Number(product.id), product]));
   const vendorIds = [...new Set(products.map((product) => Number(product.vendorId)))];
-  const vendors = await User.findAll({ where: { id: { [Op.in]: vendorIds }, role: 'VENDOR' }, attributes: VENDOR_ATTRIBUTES });
+  const vendors = await User.findAll({ where: { id: { [Op.in]: vendorIds }, role: 'VENDOR' }, attributes: VENDOR_ATTRIBUTES, transaction });
   if (vendors.length !== vendorIds.length) throw new CheckoutError('A cart seller is unavailable', 409, 'CART_VENDOR_UNAVAILABLE');
   return { buyer, cart, products, vendors, productMap, fingerprint: cartFingerprint(cart, productMap) };
 }
 
-async function ownedAddresses(buyerId, shippingAddressId, billingAddressId) {
-  const addresses = await Address.findAll({ where: { id: { [Op.in]: [shippingAddressId, billingAddressId] }, userId: buyerId } });
+async function ownedAddresses(buyerId, shippingAddressId, billingAddressId, transaction = null) {
+  const addresses = await Address.findAll({ where: { id: { [Op.in]: [shippingAddressId, billingAddressId] }, userId: buyerId }, transaction });
   const map = new Map(addresses.map((address) => [Number(address.id), address]));
   const shipping = map.get(shippingAddressId);
   const billing = map.get(billingAddressId);
@@ -148,4 +148,4 @@ async function getDraft(buyerId, rawId, req) {
   }
 }
 
-module.exports = { createDraft, getDraft, ttlMinutes, serialize };
+module.exports = { createDraft, getDraft, ttlMinutes, serialize, contextForBuyer, ownedAddresses, sameJson };

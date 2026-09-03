@@ -67,14 +67,16 @@ function serializeLine(req, item) {
   };
 }
 
-async function getCart(userId, req) {
-  const cart = await Cart.findOne({ where: { userId } });
+async function getCart(userId, req, options = {}) {
+  const transaction = options.transaction;
+  const cart = await Cart.findOne({ where: { userId }, transaction });
   if (!cart) return { cartId: null, items: [], subtotal: 0, valid: true };
 
   const records = await CartItem.findAll({
     where: { cartId: cart.id },
     include: { model: Product, as: 'product', attributes: PRODUCT_ATTRIBUTES, required: false },
-    order: [['id', 'ASC']]
+    order: [['id', 'ASC']],
+    transaction
   });
   const items = records.map((item) => serializeLine(req, item));
   const subtotal = items.reduce((sum, item) => sum + (Number(item.lineSubtotal) || 0), 0);

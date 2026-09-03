@@ -1,6 +1,7 @@
 'use strict';
 
 const service = require('../checkout.service');
+const reservationService = require('../../order/inventory-reservation.service');
 const { CheckoutError } = require('../checkout.validation');
 
 function sendError(res, error) {
@@ -20,6 +21,14 @@ exports.createDraft = async (req, res) => {
 exports.getDraft = async (req, res) => {
   try {
     return res.json(await service.getDraft(req.user.id, req.params.id, req));
+  } catch (error) {
+    return sendError(res, error);
+  }
+};
+
+exports.prepareOrder = async (req, res) => {
+  try {
+    return res.status(201).json(await reservationService.prepareMarketplaceOrderFromDraft(req.user.id, req.params.id, req.body, req));
   } catch (error) {
     return sendError(res, error);
   }
