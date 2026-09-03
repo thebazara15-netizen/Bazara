@@ -77,15 +77,15 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 text-gray-900 p-4">
 
-      <div className="bg-gray-800/50 backdrop-blur-md border border-gray-700 p-6 md:p-8 rounded-lg w-full max-w-sm md:max-w-md shadow-2xl">
+      <div className="w-full max-w-sm rounded-xl border border-gray-200 bg-white p-6 shadow-sm md:max-w-md md:p-8">
 
-        <h2 className="text-2xl md:text-3xl font-bold mb-2 text-center bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent">
+        <h2 className="mb-2 text-center text-2xl font-bold text-gray-900 md:text-3xl">
           Create Account
         </h2>
 
-        <p className="text-gray-400 text-center mb-6 md:mb-8 text-xs md:text-sm">
+        <p className="mb-6 text-center text-xs text-gray-500 md:mb-8 md:text-sm">
           Join our B2B marketplace
         </p>
 
@@ -93,7 +93,7 @@ export default function Register() {
         <input
           name="email"
           placeholder="Email"
-          className="w-full mb-3 p-3 rounded-lg bg-gray-700/50 border border-gray-600 focus:border-orange-500 focus:outline-none transition text-white placeholder-gray-500 text-sm md:text-base"
+          className="w-full mb-3 rounded-lg border border-gray-200 bg-white p-3 text-sm text-gray-900 transition placeholder:text-gray-400 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100 md:text-base"
           onChange={handleChange}
         />
 
@@ -102,7 +102,7 @@ export default function Register() {
           name="password"
           type="password"
           placeholder="Password"
-          className="w-full mb-3 p-3 rounded-lg bg-gray-700/50 border border-gray-600 focus:border-orange-500 focus:outline-none transition text-white placeholder-gray-500 text-sm md:text-base"
+          className="w-full mb-3 rounded-lg border border-gray-200 bg-white p-3 text-sm text-gray-900 transition placeholder:text-gray-400 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100 md:text-base"
           onChange={handleChange}
         />
 
@@ -111,14 +111,14 @@ export default function Register() {
           <input
             name="firstName"
             placeholder="First name"
-            className="w-1/2 mb-3 p-3 rounded-lg bg-gray-700/50 border border-gray-600 focus:border-orange-500 focus:outline-none transition text-white placeholder-gray-500 text-xs md:text-base"
+            className="mb-3 w-1/2 rounded-lg border border-gray-200 bg-white p-3 text-xs text-gray-900 transition placeholder:text-gray-400 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100 md:text-base"
             onChange={handleChange}
           />
 
           <input
             name="lastName"
             placeholder="Last name"
-            className="w-1/2 mb-3 p-3 rounded-lg bg-gray-700/50 border border-gray-600 focus:border-orange-500 focus:outline-none transition text-white placeholder-gray-500 text-xs md:text-base"
+            className="mb-3 w-1/2 rounded-lg border border-gray-200 bg-white p-3 text-xs text-gray-900 transition placeholder:text-gray-400 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100 md:text-base"
             onChange={handleChange}
           />
         </div>
@@ -127,14 +127,14 @@ export default function Register() {
         <input
           name="phone"
           placeholder="Phone Number"
-          className="w-full mb-3 p-3 rounded-lg bg-gray-700/50 border border-gray-600 focus:border-orange-500 focus:outline-none transition text-white placeholder-gray-500 text-sm md:text-base"
+          className="w-full mb-3 rounded-lg border border-gray-200 bg-white p-3 text-sm text-gray-900 transition placeholder:text-gray-400 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100 md:text-base"
           onChange={handleChange}
         />
 
         {/* ROLE */}
         <select
           name="role"
-          className="w-full mb-4 p-3 rounded-lg bg-gray-700/50 border border-gray-600 focus:border-orange-500 focus:outline-none transition text-white text-sm md:text-base"
+          className="w-full mb-4 rounded-lg border border-gray-200 bg-white p-3 text-sm text-gray-900 transition focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100 md:text-base"
           onChange={handleChange}
         >
           <option value="CLIENT">Client</option>
@@ -147,21 +147,21 @@ export default function Register() {
             <input
               name="companyName"
               placeholder="Company Name"
-              className="w-full mb-3 p-3 rounded-lg bg-gray-700/50 border border-gray-600 focus:border-orange-500 focus:outline-none transition text-white placeholder-gray-500 text-sm md:text-base"
+              className="w-full mb-3 rounded-lg border border-gray-200 bg-white p-3 text-sm text-gray-900 transition placeholder:text-gray-400 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100 md:text-base"
               onChange={handleChange}
             />
 
             <input
               name="gstNumber"
               placeholder="GST Number"
-              className="w-full mb-3 p-3 rounded-lg bg-gray-700/50 border border-gray-600 focus:border-orange-500 focus:outline-none transition text-white placeholder-gray-500 text-sm md:text-base"
+              className="w-full mb-3 rounded-lg border border-gray-200 bg-white p-3 text-sm text-gray-900 transition placeholder:text-gray-400 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100 md:text-base"
               onChange={handleChange}
             />
           </>
         )}
 
         {/* Terms */}
-        <div className="flex items-start gap-2 text-xs md:text-sm text-gray-400 mb-4 md:mb-6">
+        <div className="mb-4 flex items-start gap-2 text-xs text-gray-500 md:mb-6 md:text-sm">
           <input type="checkbox" className="mt-1 flex-shrink-0" />
           <p>I agree to Terms of Use and Privacy Policy</p>
         </div>
@@ -169,17 +169,17 @@ export default function Register() {
         {/* Button */}
         <button
           onClick={handleRegister}
-          className="w-full bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 p-3 rounded-lg font-bold transition shadow-lg text-sm md:text-base"
+          className="w-full rounded-lg bg-blue-600 p-3 text-sm font-semibold text-white transition hover:bg-blue-700 md:text-base"
         >
           Create Account
         </button>
 
         {/* Login link */}
-        <p className="text-center text-gray-400 mt-4 md:mt-6 text-xs md:text-sm">
-          Already have an account? <a href="/login" className="text-orange-400 hover:text-orange-300 font-semibold">Login here</a>
+        <p className="mt-4 text-center text-xs text-gray-500 md:mt-6 md:text-sm">
+          Already have an account? <a href="/login" className="font-semibold text-blue-600 hover:text-blue-700">Login here</a>
           <span
             onClick={() => router.push("/login")}
-            className="text-orange-500 cursor-pointer hover:underline"
+            className="cursor-pointer text-blue-600 hover:underline"
           >
             Sign in
           </span>
