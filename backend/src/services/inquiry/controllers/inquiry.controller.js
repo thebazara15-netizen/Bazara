@@ -26,9 +26,9 @@ exports.createInquiry = async (req, res) => {
     if (!product) return res.status(404).json({ message: 'Product not found' });
     if (!product.vendorId) return res.status(400).json({ message: 'Product has no vendor assigned' });
 
-    const { inquiry } = await inboxService.createInquiry(product, req.user.id, { quantity, message });
+    const { inquiry, conversation } = await inboxService.createInquiry(product, req.user.id, { quantity, message });
 
-    res.status(201).json(await serializeInquiry(inquiry));
+    res.status(201).json({ ...(await serializeInquiry(inquiry)), conversationId: conversation.id });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import QuantitySelector from "./QuantitySelector";
 
@@ -30,6 +31,7 @@ export default function InquiryPanel({ productName, initialQuantity, moq, open, 
             <p className="mt-1 text-right text-xs text-slate-400">{message.length}/2000</p>
           </div>
           {status?.message && <div role="status" className={`rounded-xl px-4 py-3 text-sm ${status.type === "error" ? "bg-rose-50 text-rose-700" : "bg-emerald-50 text-emerald-700"}`}>{status.message}</div>}
+          {status?.conversationId && <Link href={`/account?section=inbox&conversation=${status.conversationId}`} className="marketplace-button-primary">Open Conversation</Link>}
           <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"><button type="button" onClick={onClose} disabled={submitting} className="min-h-11 rounded-xl border border-slate-300 px-5 text-sm font-bold text-slate-700 hover:bg-slate-50">Cancel</button><button type="submit" disabled={submitting} className="min-h-11 rounded-xl bg-orange-700 px-5 text-sm font-bold text-white hover:bg-orange-800 disabled:cursor-wait disabled:opacity-60">{submitting ? "Sending enquiry…" : "Send enquiry"}</button></div>
         </form>
       </div>

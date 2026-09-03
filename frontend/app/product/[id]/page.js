@@ -154,7 +154,7 @@ export default function ProductDetails() {
         setInquiryStatus({ type: "error", message: data.message || "The enquiry could not be sent." });
         return false;
       }
-      setInquiryStatus({ type: "success", message: "Your enquiry was sent to the supplier." });
+      setInquiryStatus({ type: "success", message: "Message sent to supplier.", conversationId: data.conversationId });
       showToast("Enquiry sent successfully.");
       return true;
     } catch {

@@ -19,6 +19,7 @@ const API = "/api";
 export default function VendorDashboard() {
   const router = useRouter();
   const [active, setActive] = useState("overview");
+  const [initialConversationId, setInitialConversationId] = useState(null);
   const [token, setToken] = useState(null);
   const [products, setProducts] = useState([]);
   const [inquiries, setInquiries] = useState([]);
@@ -68,6 +69,8 @@ export default function VendorDashboard() {
   }, [request, token]);
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("section") === "inbox") { setActive("inbox"); setInitialConversationId(params.get("conversation")); }
     const current = getToken();
     const user = current ? decodeToken(current) : null;
     if (!current) { localStorage.setItem("redirect", "/vendor"); router.push("/login"); return; }
@@ -108,6 +111,17 @@ export default function VendorDashboard() {
     finally { setInquiryBusyId(null); }
   };
 
+  const openInquiryInbox = async (id) => {
+    setInquiryBusyId(id);
+    try {
+      const conversation = await request(`/inbox/inquiries/${id}/open`, { method: "POST" });
+      setInitialConversationId(conversation.conversationId);
+      setActive("inbox");
+      router.replace(`/vendor?section=inbox&conversation=${conversation.conversationId}`);
+    } catch (error) { setFeedback({ type: "error", message: error.message }); }
+    finally { setInquiryBusyId(null); }
+  };
+
   const submitQuote = async (rfqId) => {
     const draft = drafts[rfqId] || {};
     const price = Number(draft.price);
@@ -123,11 +137,11 @@ export default function VendorDashboard() {
   const savePricing = async (value) => { setBusy(true); setFeedback(null); try { const saved = await request("/vendor/pricing-config", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(value) }); setPricingConfig(saved); setFeedback({ type: "success", message: "Tax and shipping configuration saved." }); } catch (error) { setFeedback({ type: "error", message: error.message }); } finally { setBusy(false); } };
   const submittedIds = new Set(quotes.map((quote) => quote.rfqId));
   const content = active === "overview" ? <VendorOverview counts={{ products: products.length, inquiries: inquiries.length, rfqs: rfqs.length, quotes: quotes.length }} onNavigate={navigate}/>
-    : active === "inbox" ? <InboxPanel token={token} role="VENDOR"/>
+    : active === "inbox" ? <InboxPanel token={token} role="VENDOR" initialConversationId={initialConversationId}/>
     : active === "products" ? <VendorProducts products={products} onAdd={() => navigate("add")} onEdit={(product) => { setEditing(product); setActive("add"); }} onDelete={setDeleting}/>
     : active === "add" ? <VendorProductForm product={editing} busy={busy} onCancel={() => navigate("products")} onSubmit={saveProduct} onError={(message) => setFeedback(message ? { type: "error", message } : null)}/>
     : active === "pricing" ? <VendorPricingConfig config={pricingConfig} busy={busy} onSave={savePricing} onError={(message) => setFeedback({ type: "error", message })}/>
-    : active === "inquiries" ? <VendorInquiries inquiries={inquiries} busyId={inquiryBusyId} onStatus={updateInquiry}/>
+    : active === "inquiries" ? <VendorInquiries inquiries={inquiries} busyId={inquiryBusyId} onStatus={updateInquiry} onOpenInbox={openInquiryInbox}/>
     : active === "rfqs" ? <VendorRfqs rfqs={rfqs} drafts={drafts} onDraftChange={(id, value) => setDrafts((current) => ({ ...current, [id]: value }))} onQuote={submitQuote} submittingId={submittingQuoteId} submittedRfqIds={submittedIds}/>
     : <VendorQuotes quotes={quotes}/>;
 
