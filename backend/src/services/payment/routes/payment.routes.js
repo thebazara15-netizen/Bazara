@@ -7,6 +7,7 @@ const role = require('../../../middleware/role.middleware');
 
 router.post('/attempt', auth, role(['CLIENT']), paymentController.createPaymentAttempt);
 router.post('/attempt/:id/verify-client', auth, role(['CLIENT']), paymentController.verifyClientPayment);
+router.get('/attempt/:id/status', auth, role(['CLIENT']), paymentController.paymentStatus);
 router.post('/checkout-order', auth, role(['CLIENT']), paymentController.legacyDisabled);
 router.post('/verify', auth, role(['CLIENT']), paymentController.legacyDisabled);
 

@@ -25,6 +25,8 @@ app.use(cors({
   origin: allowedOrigins,
   credentials: true
 }));
+// Razorpay signs the exact bytes; isolate raw parsing to this endpoint.
+app.post('/api/payments/webhook/razorpay', express.raw({ type: 'application/json', limit: '256kb' }), require('./services/payment/controllers/payment.controller').razorpayWebhook);
 app.use(express.json());
 app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));
 app.use(logger.requestMiddleware);

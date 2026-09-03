@@ -87,6 +87,7 @@ async function verifyClientSignature(buyerId, attemptId, body) {
   const attempt = await PaymentAttempt.findOne({ where: { id: positiveId(attemptId, 'payment attempt id'), buyerId }, include: [{ model: BuyerOrder, as: 'buyerOrder' }] });
   if (!attempt) throw new PaymentError('Payment attempt not found', 404, 'PAYMENT_ATTEMPT_NOT_FOUND');
   if (attempt.providerOrderId !== body.razorpay_order_id) throw new PaymentError('Provider order does not match', 409, 'PROVIDER_ORDER_MISMATCH');
+  if (attempt.status === 'CAPTURED') return { paymentAttemptId: attempt.id, status: 'CAPTURED', confirmationPending: false };
   if (attempt.status === 'AUTHORIZED' && attempt.providerPaymentId === body.razorpay_payment_id) return { paymentAttemptId: attempt.id, status: attempt.status, confirmationPending: true };
   if (attempt.status !== 'PROVIDER_ORDER_CREATED') throw new PaymentError('Payment attempt cannot be verified', 409, 'INVALID_PAYMENT_TRANSITION');
   const expected = crypto.createHmac('sha256', credentials().keySecret).update(`${body.razorpay_order_id}|${body.razorpay_payment_id}`).digest();
@@ -96,4 +97,10 @@ async function verifyClientSignature(buyerId, attemptId, body) {
   return { paymentAttemptId: attempt.id, status: 'AUTHORIZED', confirmationPending: true };
 }
 
-module.exports = { PaymentError, initiatePaymentAttempt, verifyClientSignature, validateOrder };
+async function getPaymentStatus(buyerId, attemptId) {
+  const attempt = await PaymentAttempt.findOne({ where: { id: positiveId(attemptId, 'payment attempt id'), buyerId }, include: [{ model: BuyerOrder, as: 'buyerOrder', attributes: ['id', 'status'] }] });
+  if (!attempt) throw new PaymentError('Payment attempt not found', 404, 'PAYMENT_ATTEMPT_NOT_FOUND');
+  return { paymentAttemptId: attempt.id, buyerOrderId: attempt.buyerOrderId, paymentStatus: attempt.status, orderStatus: attempt.buyerOrder?.status, providerOrderId: attempt.providerOrderId, providerPaymentId: attempt.providerPaymentId, updatedAt: attempt.updatedAt };
+}
+
+module.exports = { PaymentError, initiatePaymentAttempt, verifyClientSignature, getPaymentStatus, validateOrder };

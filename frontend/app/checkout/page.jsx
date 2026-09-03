@@ -135,11 +135,20 @@ export default function CheckoutPage() {
       new window.Razorpay({
         key: attempt.razorpayKeyId, order_id: attempt.providerOrderId, amount: attempt.amountPaise, currency: attempt.currency,
         handler: async (result) => {
-          setPaymentMessage("Payment confirmation in progress");
+          setPaymentMessage("Confirming payment...");
           const verifyResponse = await fetch(`${API}/api/payments/attempt/${attempt.paymentAttemptId}/verify-client`, {
             method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify(result)
           });
           if (!verifyResponse.ok) setError("Payment confirmation could not be verified. Do not retry payment; confirmation is in progress.");
+          for (let poll = 0; verifyResponse.ok && poll < 6; poll += 1) {
+            await new Promise((resolve) => setTimeout(resolve, 1500 + poll * 500));
+            const statusResponse = await fetch(`${API}/api/payments/attempt/${attempt.paymentAttemptId}/status`, { headers: { Authorization: `Bearer ${token}` } });
+            if (!statusResponse.ok) break;
+            const status = await statusResponse.json();
+            if (status.paymentStatus === "CAPTURED" && status.orderStatus === "PLACED") { setPaymentMessage("Payment confirmed"); return; }
+            if (status.paymentStatus === "FAILED") { setPaymentMessage("Payment failed or requires manual review"); return; }
+          }
+          if (verifyResponse.ok) setPaymentMessage("Payment pending confirmation");
         },
         modal: { ondismiss: () => setPaymentMessage("") }
       }).open();

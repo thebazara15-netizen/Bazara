@@ -18,6 +18,7 @@ const SellerTaxProfile = require('./SellerTaxProfile');
 const SellerShippingPolicy = require('./SellerShippingPolicy');
 const InventoryReservation = require('./InventoryReservation');
 const PaymentAttempt = require('./PaymentAttempt');
+const PaymentEvent = require('./PaymentEvent');
 
 // Define associations
 User.hasMany(Product, { as: 'products', foreignKey: 'vendorId' });
@@ -88,6 +89,8 @@ BuyerOrder.hasMany(PaymentAttempt, { as: 'paymentAttempts', foreignKey: 'buyerOr
 PaymentAttempt.belongsTo(BuyerOrder, { as: 'buyerOrder', foreignKey: 'buyerOrderId' });
 User.hasMany(PaymentAttempt, { as: 'paymentAttempts', foreignKey: 'buyerId' });
 PaymentAttempt.belongsTo(User, { as: 'buyer', foreignKey: 'buyerId' });
+PaymentAttempt.hasMany(PaymentEvent, { as: 'paymentEvents', foreignKey: 'paymentAttemptId' });
+PaymentEvent.belongsTo(PaymentAttempt, { as: 'paymentAttempt', foreignKey: 'paymentAttemptId' });
 
 User.hasOne(SellerTaxProfile, { as: 'taxProfile', foreignKey: 'vendorId' });
 SellerTaxProfile.belongsTo(User, { as: 'vendor', foreignKey: 'vendorId' });
@@ -114,5 +117,6 @@ module.exports = {
   SellerTaxProfile,
   SellerShippingPolicy,
   InventoryReservation,
-  PaymentAttempt
+  PaymentAttempt,
+  PaymentEvent
 };
