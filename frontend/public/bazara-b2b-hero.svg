@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 560" role="img" aria-labelledby="title desc">
+  <title id="title">Bazara B2B marketplace network</title>
+  <desc id="desc">A connected factory, warehouse, products, logistics vehicle, supplier and buyer network.</desc>
+  <defs>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#1c1c1f"/><stop offset="1" stop-color="#080809"/></linearGradient>
+    <linearGradient id="red" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ff4b51"/><stop offset="1" stop-color="#d81725"/></linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff" stop-opacity=".15"/><stop offset="1" stop-color="#fff" stop-opacity=".02"/></linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%"><feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#000" flood-opacity=".42"/></filter>
+    <filter id="glow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="9"/></filter>
+  </defs>
+
+  <g fill="none" stroke="#fff" stroke-opacity=".28" stroke-width="2" stroke-dasharray="6 8">
+    <path d="M148 188 280 264M570 174 446 255M145 405l142-75M571 409l-131-76"/>
+  </g>
+  <g fill="#ff3131" opacity=".45" filter="url(#glow)"><circle cx="280" cy="264" r="18"/><circle cx="446" cy="255" r="18"/><circle cx="287" cy="330" r="18"/><circle cx="440" cy="333" r="18"/></g>
+  <g fill="#fff"><circle cx="148" cy="188" r="4"/><circle cx="570" cy="174" r="4"/><circle cx="145" cy="405" r="4"/><circle cx="571" cy="409" r="4"/></g>
+
+  <g filter="url(#shadow)">
+    <rect x="188" y="138" width="350" height="292" rx="34" fill="url(#panel)" stroke="#fff" stroke-opacity=".13"/>
+    <path d="M188 211c86-50 263-74 350-18v-21c0-19-15-34-34-34H222c-19 0-34 15-34 34z" fill="url(#glass)"/>
+    <rect x="218" y="168" width="132" height="30" rx="15" fill="#080809" stroke="#fff" stroke-opacity=".1"/>
+    <circle cx="238" cy="183" r="6" fill="#ff3131"/><text x="254" y="188" fill="#fff" font-family="Arial,sans-serif" font-size="13" font-weight="700" letter-spacing="2">BAZARA</text>
+
+    <!-- factory and warehouse -->
+    <path d="M236 330v-79l54-29v29l54-29v108z" fill="#111114" stroke="#fff" stroke-opacity=".36" stroke-width="2"/>
+    <path d="M250 330v-48h78v48" fill="#242428"/><path d="M261 265h16m15 0h16" stroke="#ff4b51" stroke-width="7"/>
+    <path d="M247 229v-36h20v25" fill="#1b1b1e" stroke="#fff" stroke-opacity=".3"/>
+    <path d="M365 330v-91l58-34 58 34v91" fill="#151518" stroke="#fff" stroke-opacity=".36" stroke-width="2"/>
+    <path d="M380 250h86v80h-86z" fill="#202024"/><path d="M389 263h68v13h-68zm0 25h68v13h-68zm0 25h68v17h-68z" fill="#0d0d0f"/>
+
+    <!-- cartons -->
+    <g stroke="#fff" stroke-opacity=".32"><path d="m286 348 24-13 24 13-24 14z" fill="#ff3131"/><path d="m286 348 24 14v28l-24-14z" fill="#d71927"/><path d="m334 348-24 14v28l24-14z" fill="#a90e19"/><path d="m336 363 19-10 19 10-19 11z" fill="#ff6267"/><path d="m336 363 19 11v22l-19-11z" fill="#e11d2e"/><path d="m374 363-19 11v22l19-11z" fill="#b30f1c"/></g>
+
+    <!-- logistics vehicle -->
+    <g transform="translate(397 345)"><rect width="77" height="37" rx="7" fill="#f4f4f5"/><path d="M77 13h25l16 17v7H77z" fill="#ff3131"/><path d="M89 17h10l10 11H89z" fill="#151518"/><circle cx="22" cy="40" r="10" fill="#080809" stroke="#fff" stroke-opacity=".5"/><circle cx="94" cy="40" r="10" fill="#080809" stroke="#fff" stroke-opacity=".5"/></g>
+  </g>
+
+  <!-- network nodes -->
+  <g filter="url(#shadow)" font-family="Arial,sans-serif">
+    <g transform="translate(58 132)"><rect width="170" height="77" rx="18" fill="#0d0d0f" stroke="#fff" stroke-opacity=".16"/><circle cx="38" cy="38" r="21" fill="#281014"/><path d="M27 45V32l11-7 11 7v13m-17 0V35h12v10" fill="none" stroke="#ff4b51" stroke-width="2"/><text x="70" y="34" fill="#a6a6ad" font-size="10" font-weight="700" letter-spacing="1.7">SUPPLIER</text><text x="70" y="52" fill="#fff" font-size="13" font-weight="700">Manufacture</text></g>
+    <g transform="translate(500 118)"><rect width="164" height="77" rx="18" fill="#0d0d0f" stroke="#fff" stroke-opacity=".16"/><circle cx="38" cy="38" r="21" fill="#281014"/><path d="m29 33 9-5 9 5-9 5zm0 0v11l9 5 9-5V33" fill="none" stroke="#ff4b51" stroke-width="2"/><text x="70" y="34" fill="#a6a6ad" font-size="10" font-weight="700" letter-spacing="1.7">PRODUCT</text><text x="70" y="52" fill="#fff" font-size="13" font-weight="700">Discover</text></g>
+    <g transform="translate(55 378)"><rect width="166" height="77" rx="18" fill="#0d0d0f" stroke="#fff" stroke-opacity=".16"/><circle cx="38" cy="38" r="21" fill="#281014"/><path d="M29 45h18M32 40v-9h12v9M35 31v-5h6v5" fill="none" stroke="#ff4b51" stroke-width="2"/><text x="70" y="34" fill="#a6a6ad" font-size="10" font-weight="700" letter-spacing="1.7">SOURCE</text><text x="70" y="52" fill="#fff" font-size="13" font-weight="700">Connect</text></g>
+    <g transform="translate(498 380)"><rect width="166" height="77" rx="18" fill="#0d0d0f" stroke="#fff" stroke-opacity=".16"/><circle cx="38" cy="38" r="21" fill="#281014"/><circle cx="38" cy="31" r="7" fill="none" stroke="#ff4b51" stroke-width="2"/><path d="M26 49c2-8 22-8 24 0" fill="none" stroke="#ff4b51" stroke-width="2"/><text x="70" y="34" fill="#a6a6ad" font-size="10" font-weight="700" letter-spacing="1.7">BUYER</text><text x="70" y="52" fill="#fff" font-size="13" font-weight="700">Grow</text></g>
+  </g>
+</svg>

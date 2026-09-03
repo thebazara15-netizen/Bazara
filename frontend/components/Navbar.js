@@ -10,10 +10,10 @@ import MarketplaceMegaMenu from "./marketplace/MarketplaceMegaMenu";
 const subscribeToAuthCookie = () => () => {};
 const getServerToken = () => null;
 const primaryLinks = [
-  { label: "Trending products", href: "/#trending-products" },
+  { label: "Home", href: "/" },
+  { label: "Products", href: "/products" },
   { label: "Suppliers", href: "/suppliers" },
   { label: "Post requirement", href: "/rfq" },
-  { label: "Wholesale sourcing", href: "/#wholesale-deals" },
 ];
 
 function NavigationLink({ href, ...props }) {
@@ -85,35 +85,27 @@ function NavbarContent() {
   const userName = user?.name || [user?.firstName, user?.lastName].filter(Boolean).join(" ") || user?.email?.split("@")[0] || "Account";
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 text-slate-900 shadow-sm backdrop-blur-xl">
-      <div className="hidden border-b border-slate-200 bg-slate-950 text-slate-300 md:block">
-        <div className="marketplace-container flex min-h-9 items-center justify-between gap-6 text-xs">
-          <p>Welcome to Bazara</p>
-          <nav aria-label="Utility navigation" className="flex items-center gap-5">
-            <Link href="/#featured-products" className="hover:text-white">For buyers</Link>
-            <Link href="/suppliers" className="hover:text-white">For suppliers</Link>
-            <Link href="/rfq" className="hover:text-white">RFQ</Link>
-            <span className="text-slate-500">Help & support</span>
-            {!user && <><Link href="/login" className="font-semibold text-white hover:text-orange-300">Sign in</Link><Link href="/register" className="font-semibold text-white hover:text-orange-300">Register</Link></>}
-          </nav>
-        </div>
-      </div>
-
-      <div className="marketplace-container flex flex-wrap items-center gap-3 py-3 lg:flex-nowrap lg:gap-6">
+    <header className="sticky top-0 z-50 border-b border-white/10 bg-white/95 text-slate-900 shadow-2xl shadow-black/30 backdrop-blur-xl">
+      <div className="marketplace-container flex flex-wrap items-center gap-3 py-2.5 lg:flex-nowrap lg:gap-5">
         <Link href="/" className="flex shrink-0 items-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orange-600">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-600 text-lg font-black text-white shadow-sm">B</span>
-          <span className="hidden sm:block"><strong className="block text-lg leading-5 tracking-tight">Bazara</strong><span className="text-[11px] font-medium text-slate-500">Business marketplace</span></span>
+          <span className="relative h-10 w-28 overflow-hidden rounded-full bg-[#ff2f36] shadow-lg shadow-red-950/40"><img src="/bazara-logo.jpeg" alt="Bazara" className="absolute left-0 top-1/2 w-28 -translate-y-1/2" /></span>
         </Link>
 
-        <form onSubmit={handleSearch} role="search" className="order-3 w-full lg:order-none lg:flex-1">
-          <div role="tablist" aria-label="Marketplace search type" className="mb-1 flex gap-4 px-1 text-xs font-bold">
+        <nav aria-label="Primary navigation" className="hidden items-center gap-5 lg:flex">
+          {primaryLinks.slice(0, 3).map((link) => <NavigationLink key={link.label} href={link.href} className="whitespace-nowrap border-b-2 border-transparent py-3 text-sm font-semibold text-slate-300 hover:border-red-500 hover:text-white">{link.label}</NavigationLink>)}
+          <button type="button" onClick={() => setCategoriesOpen((value) => !value)} onMouseEnter={() => setCategoriesOpen(true)} aria-expanded={categoriesOpen} aria-controls="category-mega-menu" className="whitespace-nowrap border-b-2 border-transparent py-3 text-sm font-semibold text-slate-300 hover:border-red-500 hover:text-white">Categories</button>
+          <NavigationLink href="/rfq" className="whitespace-nowrap border-b-2 border-transparent py-3 text-sm font-semibold text-slate-300 hover:border-red-500 hover:text-white">Post Requirement</NavigationLink>
+        </nav>
+
+        <form onSubmit={handleSearch} role="search" className="order-3 w-full lg:order-none lg:ml-auto lg:max-w-sm lg:flex-1">
+          <div role="tablist" aria-label="Marketplace search type" className="sr-only">
             {["products", "suppliers"].map((type) => <button key={type} type="button" role="tab" aria-selected={searchType === type} onClick={() => setSearchType(type)} className={`border-b-2 pb-1 capitalize focus-visible:outline-2 focus-visible:outline-orange-600 ${searchType === type ? "border-orange-600 text-orange-700" : "border-transparent text-slate-500 hover:text-slate-800"}`}>{type}</button>)}
           </div>
           <label htmlFor="marketplace-search" className="sr-only">Search {searchType}</label>
-          <div className="flex h-12 overflow-hidden rounded-xl border-2 border-slate-900 bg-white transition focus-within:border-orange-600 focus-within:ring-2 focus-within:ring-orange-100">
+          <div className="flex h-10 overflow-hidden rounded-full border border-white/15 bg-white transition focus-within:border-orange-600 focus-within:ring-2 focus-within:ring-orange-100">
+            <select aria-label="Search type" value={searchType} onChange={(event) => setSearchType(event.target.value)} className="w-[6.5rem] border-0 border-r border-white/10 bg-transparent pl-3 text-xs font-bold outline-none"><option value="products">Products</option><option value="suppliers">Suppliers</option></select>
             <input key={searchParams.get("q") || ""} id="marketplace-search" name="q" type="search" defaultValue={searchParams.get("q") || ""} placeholder="Search products, machinery, components..." className="min-w-0 flex-1 px-4 text-sm outline-none placeholder:text-slate-400" />
-            <a href="/#visual-search" aria-label="Visual Search coming soon" className="inline-flex w-11 items-center justify-center border-l border-slate-200 text-slate-500 hover:bg-orange-50 hover:text-orange-700 focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-orange-600"><Icon name="package" /></a>
-            <button type="submit" className="inline-flex w-14 items-center justify-center bg-slate-950 text-white transition hover:bg-orange-700 focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-white" aria-label={`Search ${searchType}`}><Icon name="search" /></button>
+            <button type="submit" className="inline-flex w-14 items-center justify-center bg-orange-600 text-white transition hover:bg-orange-700 focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-white" aria-label={`Search ${searchType}`}><Icon name="search" /></button>
           </div>
         </form>
 
@@ -133,9 +125,6 @@ function NavbarContent() {
         </div>
       </div>
 
-      <nav aria-label="Marketplace navigation" className="hidden border-t border-slate-200 lg:block">
-        <div className="marketplace-container flex h-11 items-center gap-7 overflow-x-auto"><button type="button" onClick={() => setCategoriesOpen((value) => !value)} onMouseEnter={() => setCategoriesOpen(true)} aria-expanded={categoriesOpen} aria-controls="category-mega-menu" className="inline-flex shrink-0 items-center gap-2 text-sm font-semibold text-slate-700 hover:text-orange-700 focus-visible:outline-2 focus-visible:outline-orange-600"><Icon name="categories" className="h-4 w-4" />All categories</button>{primaryLinks.map((link) => <NavigationLink key={link.label} href={link.href} className="inline-flex shrink-0 items-center gap-2 text-sm font-semibold text-slate-700 hover:text-orange-700">{link.label}</NavigationLink>)}</div>
-      </nav>
       {mobileOpen && <nav aria-label="Mobile marketplace navigation" className="border-t border-slate-200 bg-white px-4 py-3 lg:hidden"><div className="mx-auto grid max-w-7xl gap-1"><button type="button" onClick={() => { setMobileOpen(false); setMobileCategoriesOpen(true); }} aria-expanded={mobileCategoriesOpen} aria-controls="mobile-category-panel" className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-left text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-orange-700"><Icon name="categories" className="h-4 w-4" />All categories</button>{primaryLinks.map((link) => <NavigationLink key={link.label} href={link.href} onClick={() => setMobileOpen(false)} className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-orange-700">{link.label}</NavigationLink>)}</div></nav>}
       <MarketplaceMegaMenu open={categoriesOpen} onClose={() => setCategoriesOpen(false)} viewerRole={user?.role} />
       <MarketplaceMegaMenu open={mobileCategoriesOpen} onClose={() => setMobileCategoriesOpen(false)} viewerRole={user?.role} mobile />

@@ -13,10 +13,10 @@ export default function ProductBuyBox({ product, quantity, onQuantityChange, vie
   const isGuest = !viewerRole;
 
   return (
-    <aside className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xl shadow-slate-200/50 sm:p-6 lg:sticky lg:top-44">
+    <aside className="rounded-2xl border border-red-500/20 bg-[#111113] p-5 shadow-2xl shadow-red-950/15 sm:p-6 lg:sticky lg:top-24">
       <div className="border-b border-slate-200 pb-5">
         <p className="text-xs font-semibold text-slate-500">Price per unit</p>
-        {hasPrice(unitPrice) ? <p className="mt-1 text-3xl font-bold tracking-tight text-slate-950">{formatPrice(unitPrice)}</p> : <p className="mt-2 text-xl font-bold text-orange-700">Contact Supplier for Price</p>}
+        {hasPrice(unitPrice) ? <p className="mt-1 text-3xl font-bold tracking-tight text-red-400">{formatPrice(unitPrice)}</p> : <p className="mt-2 text-xl font-bold text-orange-700">Contact Supplier for Price</p>}
         {hasPrice(unitPrice) && <p className="mt-2 text-xs text-slate-500">Applicable at the selected quantity</p>}
       </div>
 

@@ -8,11 +8,11 @@ export default function TrendingSection({ products, loading, error, viewerRole, 
     .slice(0, 5);
 
   return (
-    <section id="trending-products" className="scroll-mt-48 border-y border-slate-200 bg-slate-100/70 py-14 sm:py-16">
+    <section id="trending-products" className="scroll-mt-32 border-y border-white/10 bg-[#0a0a0b] py-12 sm:py-16">
       <div className="marketplace-container">
         <SectionHeader
           eyebrow="Trending on Bazara"
-          title="Recently listed marketplace picks"
+          title="Top picks for business"
           description="A fresh selection based on the newest real product listings available from Bazara suppliers."
           href="/products"
           linkLabel="View all products"
@@ -24,9 +24,9 @@ export default function TrendingSection({ products, loading, error, viewerRole, 
         ) : error ? (
           <p className="mt-7 rounded-2xl border border-rose-200 bg-rose-50 p-6 text-sm text-rose-700">Recent products could not be loaded right now.</p>
         ) : recentProducts.length ? (
-          <div className="-mx-4 mt-7 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-3 sm:-mx-0 sm:grid sm:grid-cols-2 sm:px-0 lg:grid-cols-4 xl:grid-cols-5">
+          <div className="-mx-3 mt-6 flex snap-x snap-mandatory gap-3 overflow-x-auto px-3 pb-3 sm:-mx-0 sm:grid sm:grid-cols-2 sm:px-0 lg:grid-cols-5">
             {recentProducts.map((product) => (
-              <div key={product.id} className="min-w-[82vw] snap-start sm:min-w-0">
+              <div key={product.id} className="min-w-[72vw] snap-start min-[480px]:min-w-[45vw] sm:min-w-0">
                 <ProductCard product={product} viewerRole={viewerRole} inCart={cartProducts.has(product.id)} onAddToCart={onAddToCart} />
               </div>
             ))}

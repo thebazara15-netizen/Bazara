@@ -14,6 +14,7 @@ import TrendingSection from "../components/marketplace/TrendingSection";
 import VisualSearchSection from "../components/marketplace/VisualSearchSection";
 import IndiaSourcingSection from "../components/marketplace/IndiaSourcingSection";
 import ValueSection from "../components/marketplace/ValueSection";
+import MarketplaceFeatureBanner from "../components/marketplace/MarketplaceFeatureBanner";
 
 const API = "/api";
 const PAGE_SIZE = 12;
@@ -152,7 +153,9 @@ function HomeContent() {
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-slate-50 text-slate-900">
-      <div className="marketplace-container pt-5 sm:pt-7"><Hero /><CategorySection products={products} /></div>
+      <div className="marketplace-container pt-4 sm:pt-6"><Hero /><ValueSection /><CategorySection products={products} /></div>
+
+      {!searchQuery && <MarketplaceFeatureBanner product={products[0]} />}
 
       {!searchQuery && <TrendingSection products={products} loading={productsLoading} error={productsError} viewerRole={viewerRole} cartProducts={cartProducts} onAddToCart={addToCart} />}
 
@@ -171,7 +174,6 @@ function HomeContent() {
       <VisualSearchSection viewerRole={viewerRole} />
       <SupplierSection suppliers={suppliers} loading={suppliersLoading} error={suppliersError} />
       <IndiaSourcingSection viewerRole={viewerRole} />
-      <div className="marketplace-container"><ValueSection /></div>
       <RfqBanner />
       <MarketplaceFooter />
 

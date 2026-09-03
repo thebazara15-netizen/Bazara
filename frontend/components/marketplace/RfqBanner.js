@@ -3,9 +3,9 @@ import Icon from "./Icons";
 
 export default function RfqBanner() {
   return (
-    <section className="py-14 sm:py-16">
+    <section className="py-12 sm:py-16">
       <div className="marketplace-container">
-        <div className="grid overflow-hidden rounded-3xl bg-orange-700 text-white shadow-xl shadow-orange-900/10 lg:grid-cols-[1fr_auto] lg:items-center">
+        <div className="relative grid overflow-hidden rounded-3xl border border-red-500/25 bg-[radial-gradient(circle_at_85%_50%,rgba(255,47,54,.28),transparent_30%),linear-gradient(120deg,#080808,#22090c)] text-white shadow-2xl shadow-red-950/20 lg:grid-cols-[1fr_auto] lg:items-center">
           <div className="p-6 sm:p-10 lg:p-12">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-orange-100">Request for quotation</p>
             <h2 className="mt-3 max-w-2xl text-2xl font-bold tracking-tight sm:text-4xl">Can&apos;t find the right product?</h2>

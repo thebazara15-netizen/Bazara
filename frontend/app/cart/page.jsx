@@ -227,7 +227,7 @@ export default function CartPage() {
   };
 
   return (
-    <main className="min-h-screen bg-white text-gray-950">
+    <main className="min-h-screen bg-[#050505] text-gray-950">
       <div className="mx-auto max-w-7xl px-4 py-8 md:px-8 md:py-12">
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -240,7 +240,7 @@ export default function CartPage() {
             </button>
             <h1 className="text-3xl font-bold tracking-tight md:text-4xl">Shopping cart</h1>
             <p className="mt-2 text-sm text-gray-500">
-              Review product details, quantities, shipping estimate, and secure checkout.
+              Review selected products, quantities, and currently available pricing information.
             </p>
           </div>
 
@@ -259,7 +259,7 @@ export default function CartPage() {
         ) : cart.length === 0 ? (
           <div className="rounded-lg border border-gray-200 bg-gray-50 px-6 py-16 text-center">
             <h2 className="text-xl font-bold">Your cart is empty</h2>
-            <p className="mt-2 text-sm text-gray-500">Add products from the client dashboard to start an order.</p>
+              <p className="mt-2 text-sm text-gray-500">Add marketplace products to start an order.</p>
             <button
               onClick={() => router.push("/#featured-products")}
               className="mt-6 rounded-full bg-orange-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-orange-700"
@@ -268,7 +268,7 @@ export default function CartPage() {
             </button>
           </div>
         ) : (
-          <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_420px]">
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
             <section className="min-w-0">
               <div className="mb-5 flex items-center gap-4">
                 <button
@@ -321,8 +321,8 @@ export default function CartPage() {
                         <div className="border-b border-gray-100 px-4 py-4 sm:px-6">
                           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                             <div>
-                              <p className="text-sm font-bold text-gray-950">Verified industrial supplier</p>
-                              <p className="text-xs text-gray-500">Vendor ID: {product.vendorId || "Assigned after quote"}</p>
+                              <p className="text-sm font-bold text-gray-950">Marketplace supplier</p>
+                              {product.vendorId && <p className="text-xs text-gray-500">Vendor ID: {product.vendorId}</p>}
                             </div>
                             <button
                               onClick={() => removeItem(item.id)}
@@ -337,11 +337,9 @@ export default function CartPage() {
                           <div className="mb-4">
                             <h2 className="text-lg font-bold leading-snug md:text-xl">{product.name}</h2>
                             <p className="mt-2 text-sm text-gray-500">
-                              {product.description || "Industrial B2B product configured for bulk purchasing."}
+                              {product.description || "No product description provided."}
                             </p>
                             <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
-                              <span className="rounded-full bg-orange-50 px-3 py-1 text-orange-700">Lowest among similar</span>
-                              <span className="rounded-full bg-blue-50 px-3 py-1 text-blue-700">Ready to ship</span>
                               <span className="rounded-full bg-gray-100 px-3 py-1 text-gray-700">
                                 MOQ: {product.moq || 1} pieces
                               </span>
@@ -366,13 +364,10 @@ export default function CartPage() {
                             <div className="min-w-0">
                               <p className="text-sm font-bold">Selected variation</p>
                               <p className="mt-1 text-sm text-gray-600">
-                                Category: {product.category || "Industrial supplies"}
+                                Category: {product.category || "Not provided"}
                               </p>
                               <p className="mt-1 text-sm text-gray-600">
                                 Stock available: {item.availableStock ?? product.stock ?? "Unavailable"}
-                              </p>
-                              <p className="mt-3 text-sm text-gray-500">
-                                Estimated delivery: 10 Jul-21 Aug
                               </p>
                             </div>
 
@@ -463,20 +458,14 @@ export default function CartPage() {
                 <div className="mt-8 space-y-5 border-t border-gray-100 pt-6">
                   <div>
                     <div className="flex items-center justify-between gap-3">
-                      <h3 className="font-bold">Bazara order protection</h3>
+                      <h3 className="font-bold">Order review</h3>
                       <span className="text-xl">›</span>
                     </div>
                     <p className="mt-2 text-sm leading-6 text-gray-600">
-                      Secure checkout with encrypted order processing and support for bulk B2B purchases.
+                      Final tax and seller shipping details are reviewed during checkout using available server pricing.
                     </p>
                   </div>
 
-                  <div>
-                    <h3 className="font-bold">Guaranteed delivery</h3>
-                    <p className="mt-2 text-sm leading-6 text-gray-600">
-                      Track supplier fulfillment, estimated shipping, and order confirmation from your account.
-                    </p>
-                  </div>
                 </div>
               </div>
             </aside>
