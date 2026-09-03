@@ -41,6 +41,9 @@ export default function CheckoutPage() {
   const [idempotencyKey, setIdempotencyKey] = useState(null);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [paying, setPaying] = useState(false);
+  const [paymentMessage, setPaymentMessage] = useState("");
+  const [paymentIdempotencyKey, setPaymentIdempotencyKey] = useState("");
   const [error, setError] = useState("");
 
   const load = useCallback(async (authToken) => {
@@ -78,6 +81,7 @@ export default function CheckoutPage() {
   useEffect(() => {
     setDraft(null);
     setIdempotencyKey(null);
+    setPaymentIdempotencyKey("");
   }, [shippingId, billingId, sameBilling]);
   const subtotalPaise = useMemo(() => Math.round(cart.reduce((sum, item) => sum + Number(item.lineSubtotal || 0), 0) * 100), [cart]);
 
@@ -104,6 +108,47 @@ export default function CheckoutPage() {
     }
   }
 
+  async function proceedToPayment() {
+    setPaying(true);
+    setError("");
+    setPaymentMessage("Preparing payment...");
+    try {
+      const prepareResponse = await fetch(`${API}/api/checkout/draft/${draft.draftId}/prepare-order`, {
+        method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: "{}"
+      });
+      const prepared = await prepareResponse.json();
+      if (!prepareResponse.ok) throw new Error(prepared.code === "RESERVATION_EXPIRED" ? "Reservation expired" : (prepared.message || "Unable to prepare order"));
+      const attemptKey = paymentIdempotencyKey || `pay_${prepared.buyerOrderId}_${crypto.randomUUID()}`;
+      setPaymentIdempotencyKey(attemptKey);
+      const attemptResponse = await fetch(`${API}/api/payments/attempt`, {
+        method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ buyerOrderId: prepared.buyerOrderId, idempotencyKey: attemptKey })
+      });
+      const attempt = await attemptResponse.json();
+      if (!attemptResponse.ok) throw new Error(attempt.code === "RESERVATION_EXPIRED" ? "Reservation expired" : (attempt.message || "Payment provider unavailable"));
+      if (!window.Razorpay) {
+        await new Promise((resolve, reject) => {
+          const script = document.createElement("script"); script.src = "https://checkout.razorpay.com/v1/checkout.js"; script.async = true;
+          script.onload = resolve; script.onerror = () => reject(new Error("Payment provider unavailable")); document.body.appendChild(script);
+        });
+      }
+      new window.Razorpay({
+        key: attempt.razorpayKeyId, order_id: attempt.providerOrderId, amount: attempt.amountPaise, currency: attempt.currency,
+        handler: async (result) => {
+          setPaymentMessage("Payment confirmation in progress");
+          const verifyResponse = await fetch(`${API}/api/payments/attempt/${attempt.paymentAttemptId}/verify-client`, {
+            method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify(result)
+          });
+          if (!verifyResponse.ok) setError("Payment confirmation could not be verified. Do not retry payment; confirmation is in progress.");
+        },
+        modal: { ondismiss: () => setPaymentMessage("") }
+      }).open();
+    } catch (paymentError) {
+      setPaymentMessage("");
+      setError(paymentError.message || "Payment provider unavailable");
+    } finally { setPaying(false); }
+  }
+
   if (loading) return <main className="min-h-screen bg-gray-50 px-4 py-20 text-center font-semibold text-gray-600">Loading secure checkout…</main>;
 
   return (
@@ -122,8 +167,8 @@ export default function CheckoutPage() {
             <aside className="h-fit rounded-2xl border border-gray-200 bg-white p-6 lg:sticky lg:top-6">
               <h2 className="text-xl font-extrabold">Pricing status</h2>
               <div className="mt-6 space-y-4 text-sm"><div className="flex justify-between"><span>Products subtotal</span><strong>{money(draft?.subtotalPaise ?? subtotalPaise)}</strong></div><div className="flex justify-between"><span>Shipping</span><strong>{draft ? money(draft.shippingPaise) : "To be calculated"}</strong></div><div className="flex justify-between"><span>GST</span><strong>{draft ? money(draft.taxPaise) : "To be calculated"}</strong></div>{draft?.discountPaise > 0 && <div className="flex justify-between"><span>Discount</span><strong>-{money(draft.discountPaise)}</strong></div>}<div className="flex justify-between border-t pt-4 text-base"><span>Final total</span><strong>{draft ? money(draft.grandTotalPaise) : "Not finalized"}</strong></div></div>
-              {!draft ? <button onClick={createDraft} disabled={creating} className="mt-7 w-full rounded-full bg-orange-600 px-6 py-4 font-extrabold text-white disabled:cursor-not-allowed disabled:opacity-60">{creating ? "Creating draft…" : "Create checkout draft"}</button> : <button disabled className="mt-7 w-full cursor-not-allowed rounded-full bg-gray-200 px-6 py-4 font-extrabold text-gray-600">Final pricing not ready</button>}
-              <div className="mt-4 rounded-xl bg-blue-50 p-4 text-sm leading-6 text-blue-800"><strong>Payment ready: No.</strong> Payment becomes available after shipping, GST, inventory, and final order validation.</div>
+              {!draft ? <button onClick={createDraft} disabled={creating} className="mt-7 w-full rounded-full bg-orange-600 px-6 py-4 font-extrabold text-white disabled:cursor-not-allowed disabled:opacity-60">{creating ? "Creating draft…" : "Create checkout draft"}</button> : draft.pricingStatus === "READY" && !draft.stale ? <button onClick={proceedToPayment} disabled={paying} className="mt-7 w-full rounded-full bg-red-600 px-6 py-4 font-extrabold text-white disabled:cursor-not-allowed disabled:opacity-60">{paying ? "Preparing payment..." : "Proceed to payment"}</button> : <button disabled className="mt-7 w-full cursor-not-allowed rounded-full bg-gray-200 px-6 py-4 font-extrabold text-gray-600">Final pricing not ready</button>}
+              <div className="mt-4 rounded-xl bg-blue-50 p-4 text-sm leading-6 text-blue-800"><strong>{paymentMessage || (draft?.pricingStatus === "READY" ? "Order ready for payment preparation" : "Payment ready: No.")}</strong>{!paymentMessage && " Payment is finalized only after authoritative provider confirmation."}</div>
             </aside>
           </div>
         )}
